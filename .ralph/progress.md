@@ -137,3 +137,35 @@ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter
   - Gotchas encountered
   - Useful context
 ---
+## [2026-01-13 22:00:11 UTC] - S08: Stop gate: todo-enforcer.sh
+Thread: 
+Run: 20260113-222321-527865 (iteration 8)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-8.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-8.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: f1c2da9 Add todo enforcer stop gate
+- Post-commit status: dirty (.ralph/runs/run-20260113-222321-527865-iter-8.log)
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL
+  - Command: bash -n hooks/**/*.sh -> FAIL
+  - Command: test -f .claude/guardrails.md -> PASS
+- Files changed:
+  - .agents/tasks/prd-claudecoder.json
+  - .claude/hooks/workflows/todo-enforcer.sh
+  - .ralph/.tmp/prompt-20260113-222321-527865-8.md
+  - .ralph/.tmp/story-20260113-222321-527865-8.json
+  - .ralph/.tmp/story-20260113-222321-527865-8.md
+  - .ralph/activity.log
+  - .ralph/errors.log
+  - .ralph/progress.md
+  - .ralph/runs/run-20260113-222321-527865-iter-7.log
+  - .ralph/runs/run-20260113-222321-527865-iter-7.md
+  - .ralph/runs/run-20260113-222321-527865-iter-8.log
+- What was implemented
+  - Added todo-enforcer stop gate to parse TodoWrite statuses, enforce pending/in-progress blocking, and apply a 10-block safety valve.
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered
+  - Useful context
+---

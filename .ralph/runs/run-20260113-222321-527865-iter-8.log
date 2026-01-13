@@ -2742,4 +2742,1604 @@ index 0000000000000000000000000000000000000000..200ab98b6e0be0bf70c154f41dbf6090
 thinking
 **Staging changes and reviewing next steps**
 exec
+/bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder succeeded in 28ms:
+
+file update:
+diff --git a/.claude/hooks/workflows/todo-enforcer.sh b/.claude/hooks/workflows/todo-enforcer.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..200ab98b6e0be0bf70c154f41dbf6090b576b851
+--- /dev/null
++++ b/.claude/hooks/workflows/todo-enforcer.sh
+@@ -0,0 +1,157 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++CLAUDE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
++STATE_DIR="${CLAUDE_DIR}/.state"
++STATE_FILE="${STATE_DIR}/todo-enforcer.state"
++
++block_count=0
++if [[ -f "${STATE_FILE}" ]]; then
++  read -r block_count < "${STATE_FILE}" || true
++fi
++if ! [[ "${block_count}" =~ ^[0-9]+$ ]]; then
++  block_count=0
++fi
++
++decision="allow"
++reason="todo-enforcer: no pending todos"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="allow"
++  reason="todo-enforcer: no transcript available"
++  block_count=0
++else
++  counts="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import re
++import sys
++
++path = sys.argv[1]
++statuses = []
++
++def record_status(status):
++    if isinstance(status, str):
++        statuses.append(status)
++
++def inspect_obj(obj):
++    if isinstance(obj, dict):
++        tool_name = None
++        for key in ("tool_name", "toolName", "name", "tool"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                tool_name = value
++                break
++            if isinstance(value, dict):
++                nested = value.get("name")
++                if isinstance(nested, str):
++                    tool_name = nested
++                    break
++        if tool_name == "TodoWrite":
++            tool_input = None
++            for key in ("tool_input", "toolInput", "input"):
++                if key in obj:
++                    tool_input = obj.get(key)
++                    break
++            if isinstance(tool_input, dict):
++                todos = tool_input.get("todos")
++                if isinstance(todos, list):
++                    for todo in todos:
++                        if isinstance(todo, dict):
++                            record_status(todo.get("status"))
++        for value in obj.values():
++            inspect_obj(value)
++    elif isinstance(obj, list):
++        for item in obj:
++            inspect_obj(item)
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    inspect_obj(data)
++    return True
++
++if not os.path.exists(path):
++    print("0 0 0")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++parsed = parse_json_blob(content)
++if not parsed:
++    found = False
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        found = True
++        inspect_obj(data)
++    if not found and "TodoWrite" in content:
++        for match in re.finditer(r'"status"\\s*:\\s*"([^"]+)"', content):
++            statuses.append(match.group(1))
++
++pending = sum(1 for status in statuses if status == "pending")
++in_progress = sum(1 for status in statuses if status == "in_progress")
++total = len(statuses)
++print(f"{pending} {in_progress} {total}")
++PY
++  )"
++  read -r pending_count in_progress_count total_count <<< "${counts}"
++  pending_count="${pending_count:-0}"
++  in_progress_count="${in_progress_count:-0}"
++
++  if [[ "${pending_count}" == "0" && "${in_progress_count}" == "0" ]]; then
++    decision="allow"
++    reason="todo-enforcer: no pending todos"
++    block_count=0
++  elif (( block_count >= 10 )); then
++    decision="allow"
++    reason="todo-enforcer: safety valve after 10 consecutive blocks"
++    block_count=0
++  else
++    decision="block"
++    reason="todo-enforcer: pending todos (pending=${pending_count}, in_progress=${in_progress_count})"
++    block_count=$((block_count + 1))
++  fi
++fi
++
++mkdir -p "${STATE_DIR}"
++printf '%s\n' "${block_count}" > "${STATE_FILE}"
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Committing changes with message**
+exec
+/bin/bash -lc 'git commit -m "Add todo enforcer stop gate"' in /home/ralph/ClaudeCoder succeeded in 29ms:
+[main f1c2da9] Add todo enforcer stop gate
+ 10 files changed, 3711 insertions(+), 6 deletions(-)
+ create mode 100755 .claude/hooks/workflows/todo-enforcer.sh
+ create mode 100644 .ralph/.tmp/prompt-20260113-222321-527865-8.md
+ create mode 100644 .ralph/.tmp/story-20260113-222321-527865-8.json
+ create mode 100644 .ralph/.tmp/story-20260113-222321-527865-8.md
+ create mode 100644 .ralph/runs/run-20260113-222321-527865-iter-7.md
+ create mode 100644 .ralph/runs/run-20260113-222321-527865-iter-8.log
+file update:
+diff --git a/.claude/hooks/workflows/todo-enforcer.sh b/.claude/hooks/workflows/todo-enforcer.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..200ab98b6e0be0bf70c154f41dbf6090b576b851
+--- /dev/null
++++ b/.claude/hooks/workflows/todo-enforcer.sh
+@@ -0,0 +1,157 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++CLAUDE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
++STATE_DIR="${CLAUDE_DIR}/.state"
++STATE_FILE="${STATE_DIR}/todo-enforcer.state"
++
++block_count=0
++if [[ -f "${STATE_FILE}" ]]; then
++  read -r block_count < "${STATE_FILE}" || true
++fi
++if ! [[ "${block_count}" =~ ^[0-9]+$ ]]; then
++  block_count=0
++fi
++
++decision="allow"
++reason="todo-enforcer: no pending todos"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="allow"
++  reason="todo-enforcer: no transcript available"
++  block_count=0
++else
++  counts="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import re
++import sys
++
++path = sys.argv[1]
++statuses = []
++
++def record_status(status):
++    if isinstance(status, str):
++        statuses.append(status)
++
++def inspect_obj(obj):
++    if isinstance(obj, dict):
++        tool_name = None
++        for key in ("tool_name", "toolName", "name", "tool"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                tool_name = value
++                break
++            if isinstance(value, dict):
++                nested = value.get("name")
++                if isinstance(nested, str):
++                    tool_name = nested
++                    break
++        if tool_name == "TodoWrite":
++            tool_input = None
++            for key in ("tool_input", "toolInput", "input"):
++                if key in obj:
++                    tool_input = obj.get(key)
++                    break
++            if isinstance(tool_input, dict):
++                todos = tool_input.get("todos")
++                if isinstance(todos, list):
++                    for todo in todos:
++                        if isinstance(todo, dict):
++                            record_status(todo.get("status"))
++        for value in obj.values():
++            inspect_obj(value)
++    elif isinstance(obj, list):
++        for item in obj:
++            inspect_obj(item)
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    inspect_obj(data)
++    return True
++
++if not os.path.exists(path):
++    print("0 0 0")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++parsed = parse_json_blob(content)
++if not parsed:
++    found = False
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        found = True
++        inspect_obj(data)
++    if not found and "TodoWrite" in content:
++        for match in re.finditer(r'"status"\\s*:\\s*"([^"]+)"', content):
++            statuses.append(match.group(1))
++
++pending = sum(1 for status in statuses if status == "pending")
++in_progress = sum(1 for status in statuses if status == "in_progress")
++total = len(statuses)
++print(f"{pending} {in_progress} {total}")
++PY
++  )"
++  read -r pending_count in_progress_count total_count <<< "${counts}"
++  pending_count="${pending_count:-0}"
++  in_progress_count="${in_progress_count:-0}"
++
++  if [[ "${pending_count}" == "0" && "${in_progress_count}" == "0" ]]; then
++    decision="allow"
++    reason="todo-enforcer: no pending todos"
++    block_count=0
++  elif (( block_count >= 10 )); then
++    decision="allow"
++    reason="todo-enforcer: safety valve after 10 consecutive blocks"
++    block_count=0
++  else
++    decision="block"
++    reason="todo-enforcer: pending todos (pending=${pending_count}, in_progress=${in_progress_count})"
++    block_count=$((block_count + 1))
++  fi
++fi
++
++mkdir -p "${STATE_DIR}"
++printf '%s\n' "${block_count}" > "${STATE_FILE}"
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Verifying clean git status**
+exec
+/bin/bash -lc 'git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 20ms:
+ M .ralph/runs/run-20260113-222321-527865-iter-8.log
+file update:
+diff --git a/.claude/hooks/workflows/todo-enforcer.sh b/.claude/hooks/workflows/todo-enforcer.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..200ab98b6e0be0bf70c154f41dbf6090b576b851
+--- /dev/null
++++ b/.claude/hooks/workflows/todo-enforcer.sh
+@@ -0,0 +1,157 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++CLAUDE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
++STATE_DIR="${CLAUDE_DIR}/.state"
++STATE_FILE="${STATE_DIR}/todo-enforcer.state"
++
++block_count=0
++if [[ -f "${STATE_FILE}" ]]; then
++  read -r block_count < "${STATE_FILE}" || true
++fi
++if ! [[ "${block_count}" =~ ^[0-9]+$ ]]; then
++  block_count=0
++fi
++
++decision="allow"
++reason="todo-enforcer: no pending todos"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="allow"
++  reason="todo-enforcer: no transcript available"
++  block_count=0
++else
++  counts="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import re
++import sys
++
++path = sys.argv[1]
++statuses = []
++
++def record_status(status):
++    if isinstance(status, str):
++        statuses.append(status)
++
++def inspect_obj(obj):
++    if isinstance(obj, dict):
++        tool_name = None
++        for key in ("tool_name", "toolName", "name", "tool"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                tool_name = value
++                break
++            if isinstance(value, dict):
++                nested = value.get("name")
++                if isinstance(nested, str):
++                    tool_name = nested
++                    break
++        if tool_name == "TodoWrite":
++            tool_input = None
++            for key in ("tool_input", "toolInput", "input"):
++                if key in obj:
++                    tool_input = obj.get(key)
++                    break
++            if isinstance(tool_input, dict):
++                todos = tool_input.get("todos")
++                if isinstance(todos, list):
++                    for todo in todos:
++                        if isinstance(todo, dict):
++                            record_status(todo.get("status"))
++        for value in obj.values():
++            inspect_obj(value)
++    elif isinstance(obj, list):
++        for item in obj:
++            inspect_obj(item)
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    inspect_obj(data)
++    return True
++
++if not os.path.exists(path):
++    print("0 0 0")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++parsed = parse_json_blob(content)
++if not parsed:
++    found = False
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        found = True
++        inspect_obj(data)
++    if not found and "TodoWrite" in content:
++        for match in re.finditer(r'"status"\\s*:\\s*"([^"]+)"', content):
++            statuses.append(match.group(1))
++
++pending = sum(1 for status in statuses if status == "pending")
++in_progress = sum(1 for status in statuses if status == "in_progress")
++total = len(statuses)
++print(f"{pending} {in_progress} {total}")
++PY
++  )"
++  read -r pending_count in_progress_count total_count <<< "${counts}"
++  pending_count="${pending_count:-0}"
++  in_progress_count="${in_progress_count:-0}"
++
++  if [[ "${pending_count}" == "0" && "${in_progress_count}" == "0" ]]; then
++    decision="allow"
++    reason="todo-enforcer: no pending todos"
++    block_count=0
++  elif (( block_count >= 10 )); then
++    decision="allow"
++    reason="todo-enforcer: safety valve after 10 consecutive blocks"
++    block_count=0
++  else
++    decision="block"
++    reason="todo-enforcer: pending todos (pending=${pending_count}, in_progress=${in_progress_count})"
++    block_count=$((block_count + 1))
++  fi
++fi
++
++mkdir -p "${STATE_DIR}"
++printf '%s\n' "${block_count}" > "${STATE_FILE}"
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Checking run log modifications after commit**
+exec
+/bin/bash -lc 'git show -s --format="%h %s" HEAD' in /home/ralph/ClaudeCoder succeeded in 17ms:
+f1c2da9 Add todo enforcer stop gate
+file update:
+diff --git a/.claude/hooks/workflows/todo-enforcer.sh b/.claude/hooks/workflows/todo-enforcer.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..200ab98b6e0be0bf70c154f41dbf6090b576b851
+--- /dev/null
++++ b/.claude/hooks/workflows/todo-enforcer.sh
+@@ -0,0 +1,157 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++CLAUDE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
++STATE_DIR="${CLAUDE_DIR}/.state"
++STATE_FILE="${STATE_DIR}/todo-enforcer.state"
++
++block_count=0
++if [[ -f "${STATE_FILE}" ]]; then
++  read -r block_count < "${STATE_FILE}" || true
++fi
++if ! [[ "${block_count}" =~ ^[0-9]+$ ]]; then
++  block_count=0
++fi
++
++decision="allow"
++reason="todo-enforcer: no pending todos"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="allow"
++  reason="todo-enforcer: no transcript available"
++  block_count=0
++else
++  counts="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import re
++import sys
++
++path = sys.argv[1]
++statuses = []
++
++def record_status(status):
++    if isinstance(status, str):
++        statuses.append(status)
++
++def inspect_obj(obj):
++    if isinstance(obj, dict):
++        tool_name = None
++        for key in ("tool_name", "toolName", "name", "tool"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                tool_name = value
++                break
++            if isinstance(value, dict):
++                nested = value.get("name")
++                if isinstance(nested, str):
++                    tool_name = nested
++                    break
++        if tool_name == "TodoWrite":
++            tool_input = None
++            for key in ("tool_input", "toolInput", "input"):
++                if key in obj:
++                    tool_input = obj.get(key)
++                    break
++            if isinstance(tool_input, dict):
++                todos = tool_input.get("todos")
++                if isinstance(todos, list):
++                    for todo in todos:
++                        if isinstance(todo, dict):
++                            record_status(todo.get("status"))
++        for value in obj.values():
++            inspect_obj(value)
++    elif isinstance(obj, list):
++        for item in obj:
++            inspect_obj(item)
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    inspect_obj(data)
++    return True
++
++if not os.path.exists(path):
++    print("0 0 0")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++parsed = parse_json_blob(content)
++if not parsed:
++    found = False
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        found = True
++        inspect_obj(data)
++    if not found and "TodoWrite" in content:
++        for match in re.finditer(r'"status"\\s*:\\s*"([^"]+)"', content):
++            statuses.append(match.group(1))
++
++pending = sum(1 for status in statuses if status == "pending")
++in_progress = sum(1 for status in statuses if status == "in_progress")
++total = len(statuses)
++print(f"{pending} {in_progress} {total}")
++PY
++  )"
++  read -r pending_count in_progress_count total_count <<< "${counts}"
++  pending_count="${pending_count:-0}"
++  in_progress_count="${in_progress_count:-0}"
++
++  if [[ "${pending_count}" == "0" && "${in_progress_count}" == "0" ]]; then
++    decision="allow"
++    reason="todo-enforcer: no pending todos"
++    block_count=0
++  elif (( block_count >= 10 )); then
++    decision="allow"
++    reason="todo-enforcer: safety valve after 10 consecutive blocks"
++    block_count=0
++  else
++    decision="block"
++    reason="todo-enforcer: pending todos (pending=${pending_count}, in_progress=${in_progress_count})"
++    block_count=$((block_count + 1))
++  fi
++fi
++
++mkdir -p "${STATE_DIR}"
++printf '%s\n' "${block_count}" > "${STATE_FILE}"
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Preparing timestamp for progress entry**
+exec
+/bin/bash -lc 'date -u "+%Y-%m-%d %H:%M:%S UTC"' in /home/ralph/ClaudeCoder succeeded in 19ms:
+2026-01-13 22:00:11 UTC
+file update:
+diff --git a/.claude/hooks/workflows/todo-enforcer.sh b/.claude/hooks/workflows/todo-enforcer.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..200ab98b6e0be0bf70c154f41dbf6090b576b851
+--- /dev/null
++++ b/.claude/hooks/workflows/todo-enforcer.sh
+@@ -0,0 +1,157 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++CLAUDE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
++STATE_DIR="${CLAUDE_DIR}/.state"
++STATE_FILE="${STATE_DIR}/todo-enforcer.state"
++
++block_count=0
++if [[ -f "${STATE_FILE}" ]]; then
++  read -r block_count < "${STATE_FILE}" || true
++fi
++if ! [[ "${block_count}" =~ ^[0-9]+$ ]]; then
++  block_count=0
++fi
++
++decision="allow"
++reason="todo-enforcer: no pending todos"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="allow"
++  reason="todo-enforcer: no transcript available"
++  block_count=0
++else
++  counts="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import re
++import sys
++
++path = sys.argv[1]
++statuses = []
++
++def record_status(status):
++    if isinstance(status, str):
++        statuses.append(status)
++
++def inspect_obj(obj):
++    if isinstance(obj, dict):
++        tool_name = None
++        for key in ("tool_name", "toolName", "name", "tool"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                tool_name = value
++                break
++            if isinstance(value, dict):
++                nested = value.get("name")
++                if isinstance(nested, str):
++                    tool_name = nested
++                    break
++        if tool_name == "TodoWrite":
++            tool_input = None
++            for key in ("tool_input", "toolInput", "input"):
++                if key in obj:
++                    tool_input = obj.get(key)
++                    break
++            if isinstance(tool_input, dict):
++                todos = tool_input.get("todos")
++                if isinstance(todos, list):
++                    for todo in todos:
++                        if isinstance(todo, dict):
++                            record_status(todo.get("status"))
++        for value in obj.values():
++            inspect_obj(value)
++    elif isinstance(obj, list):
++        for item in obj:
++            inspect_obj(item)
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    inspect_obj(data)
++    return True
++
++if not os.path.exists(path):
++    print("0 0 0")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++parsed = parse_json_blob(content)
++if not parsed:
++    found = False
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        found = True
++        inspect_obj(data)
++    if not found and "TodoWrite" in content:
++        for match in re.finditer(r'"status"\\s*:\\s*"([^"]+)"', content):
++            statuses.append(match.group(1))
++
++pending = sum(1 for status in statuses if status == "pending")
++in_progress = sum(1 for status in statuses if status == "in_progress")
++total = len(statuses)
++print(f"{pending} {in_progress} {total}")
++PY
++  )"
++  read -r pending_count in_progress_count total_count <<< "${counts}"
++  pending_count="${pending_count:-0}"
++  in_progress_count="${in_progress_count:-0}"
++
++  if [[ "${pending_count}" == "0" && "${in_progress_count}" == "0" ]]; then
++    decision="allow"
++    reason="todo-enforcer: no pending todos"
++    block_count=0
++  elif (( block_count >= 10 )); then
++    decision="allow"
++    reason="todo-enforcer: safety valve after 10 consecutive blocks"
++    block_count=0
++  else
++    decision="block"
++    reason="todo-enforcer: pending todos (pending=${pending_count}, in_progress=${in_progress_count})"
++    block_count=$((block_count + 1))
++  fi
++fi
++
++mkdir -p "${STATE_DIR}"
++printf '%s\n' "${block_count}" > "${STATE_FILE}"
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Inspecting progress file format**
+exec
+/bin/bash -lc 'cat /home/ralph/ClaudeCoder/.ralph/progress.md' in /home/ralph/ClaudeCoder succeeded in 19ms:
+# Progress Log
+Started: Tue Jan 13 22:23:21 CET 2026
+
+## Codebase Patterns
+- (add reusable patterns here)
+
+---
+
+## [2026-01-13 22:26:07 CET] - S01: Directory structure and settings.json template
+Thread: 
+Run: 20260113-222321-527865 (iteration 1)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-1.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-1.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: fd6c7e7 Add base hook directories and settings template
+- Post-commit status: .ralph/runs/run-20260113-222321-527865-iter-1.log (modified)
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL
+  - Command: bash -n hooks/**/*.sh -> FAIL
+file update:
+diff --git a/.claude/hooks/workflows/todo-enforcer.sh b/.claude/hooks/workflows/todo-enforcer.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..200ab98b6e0be0bf70c154f41dbf6090b576b851
+--- /dev/null
++++ b/.claude/hooks/workflows/todo-enforcer.sh
+@@ -0,0 +1,157 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++CLAUDE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
++STATE_DIR="${CLAUDE_DIR}/.state"
++STATE_FILE="${STATE_DIR}/todo-enforcer.state"
++
++block_count=0
++if [[ -f "${STATE_FILE}" ]]; then
++  read -r block_count < "${STATE_FILE}" || true
++fi
++if ! [[ "${block_count}" =~ ^[0-9]+$ ]]; then
++  block_count=0
++fi
++
++decision="allow"
++reason="todo-enforcer: no pending todos"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="allow"
++  reason="todo-enforcer: no transcript available"
++  block_count=0
++else
++  counts="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import re
++import sys
++
++path = sys.argv[1]
++statuses = []
++
++def record_status(status):
++    if isinstance(status, str):
++        statuses.append(status)
++
++def inspect_obj(obj):
++    if isinstance(obj, dict):
++        tool_name = None
++        for key in ("tool_name", "toolName", "name", "tool"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                tool_name = value
++                break
++            if isinstance(value, dict):
++                nested = value.get("name")
++                if isinstance(nested, str):
++                    tool_name = nested
++                    break
++        if tool_name == "TodoWrite":
++            tool_input = None
++            for key in ("tool_input", "toolInput", "input"):
++                if key in obj:
++                    tool_input = obj.get(key)
++                    break
++            if isinstance(tool_input, dict):
++                todos = tool_input.get("todos")
++                if isinstance(todos, list):
++                    for todo in todos:
++                        if isinstance(todo, dict):
++                            record_status(todo.get("status"))
++        for value in obj.values():
++            inspect_obj(value)
++    elif isinstance(obj, list):
++        for item in obj:
++            inspect_obj(item)
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    inspect_obj(data)
++    return True
++
++if not os.path.exists(path):
++    print("0 0 0")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++parsed = parse_json_blob(content)
++if not parsed:
++    found = False
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        found = True
++        inspect_obj(data)
++    if not found and "TodoWrite" in content:
++        for match in re.finditer(r'"status"\\s*:\\s*"([^"]+)"', content):
++            statuses.append(match.group(1))
++
++pending = sum(1 for status in statuses if status == "pending")
++in_progress = sum(1 for status in statuses if status == "in_progress")
++total = len(statuses)
++print(f"{pending} {in_progress} {total}")
++PY
++  )"
++  read -r pending_count in_progress_count total_count <<< "${counts}"
++  pending_count="${pending_count:-0}"
++  in_progress_count="${in_progress_count:-0}"
++
++  if [[ "${pending_count}" == "0" && "${in_progress_count}" == "0" ]]; then
++    decision="allow"
++    reason="todo-enforcer: no pending todos"
++    block_count=0
++  elif (( block_count >= 10 )); then
++    decision="allow"
++    reason="todo-enforcer: safety valve after 10 consecutive blocks"
++    block_count=0
++  else
++    decision="block"
++    reason="todo-enforcer: pending todos (pending=${pending_count}, in_progress=${in_progress_count})"
++    block_count=$((block_count + 1))
++  fi
++fi
++
++mkdir -p "${STATE_DIR}"
++printf '%s\n' "${block_count}" > "${STATE_FILE}"
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Preparing new progress log entry**
+exec
+/bin/bash -lc "cat <<'EOF' >> /home/ralph/ClaudeCoder/.ralph/progress.md
+## [2026-01-13 22:00:11 UTC] - S08: Stop gate: todo-enforcer.sh
+Thread: 
+Run: 20260113-222321-527865 (iteration 8)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-8.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-8.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: f1c2da9 Add todo enforcer stop gate
+- Post-commit status: dirty (.ralph/runs/run-20260113-222321-527865-iter-8.log)
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL
+  - Command: bash -n hooks/**/*.sh -> FAIL
+  - Command: test -f .claude/guardrails.md -> PASS
+- Files changed:
+  - .agents/tasks/prd-claudecoder.json
+  - .claude/hooks/workflows/todo-enforcer.sh
+  - .ralph/.tmp/prompt-20260113-222321-527865-8.md
+  - .ralph/.tmp/story-20260113-222321-527865-8.json
+  - .ralph/.tmp/story-20260113-222321-527865-8.md
+  - .ralph/activity.log
+  - .ralph/errors.log
+  - .ralph/progress.md
+  - .ralph/runs/run-20260113-222321-527865-iter-7.log
+  - .ralph/runs/run-20260113-222321-527865-iter-7.md
+  - .ralph/runs/run-20260113-222321-527865-iter-8.log
+- What was implemented
+  - Added todo-enforcer stop gate to parse TodoWrite statuses, enforce pending/in-progress blocking, and apply a 10-block safety valve.
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered
+  - Useful context
+---
+EOF" in /home/ralph/ClaudeCoder succeeded in 18ms:
+
+file update:
+diff --git a/.claude/hooks/workflows/todo-enforcer.sh b/.claude/hooks/workflows/todo-enforcer.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..200ab98b6e0be0bf70c154f41dbf6090b576b851
+--- /dev/null
++++ b/.claude/hooks/workflows/todo-enforcer.sh
+@@ -0,0 +1,157 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++CLAUDE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
++STATE_DIR="${CLAUDE_DIR}/.state"
++STATE_FILE="${STATE_DIR}/todo-enforcer.state"
++
++block_count=0
++if [[ -f "${STATE_FILE}" ]]; then
++  read -r block_count < "${STATE_FILE}" || true
++fi
++if ! [[ "${block_count}" =~ ^[0-9]+$ ]]; then
++  block_count=0
++fi
++
++decision="allow"
++reason="todo-enforcer: no pending todos"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="allow"
++  reason="todo-enforcer: no transcript available"
++  block_count=0
++else
++  counts="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import re
++import sys
++
++path = sys.argv[1]
++statuses = []
++
++def record_status(status):
++    if isinstance(status, str):
++        statuses.append(status)
++
++def inspect_obj(obj):
++    if isinstance(obj, dict):
++        tool_name = None
++        for key in ("tool_name", "toolName", "name", "tool"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                tool_name = value
++                break
++            if isinstance(value, dict):
++                nested = value.get("name")
++                if isinstance(nested, str):
++                    tool_name = nested
++                    break
++        if tool_name == "TodoWrite":
++            tool_input = None
++            for key in ("tool_input", "toolInput", "input"):
++                if key in obj:
++                    tool_input = obj.get(key)
++                    break
++            if isinstance(tool_input, dict):
++                todos = tool_input.get("todos")
++                if isinstance(todos, list):
++                    for todo in todos:
++                        if isinstance(todo, dict):
++                            record_status(todo.get("status"))
++        for value in obj.values():
++            inspect_obj(value)
++    elif isinstance(obj, list):
++        for item in obj:
++            inspect_obj(item)
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    inspect_obj(data)
++    return True
++
++if not os.path.exists(path):
++    print("0 0 0")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++parsed = parse_json_blob(content)
++if not parsed:
++    found = False
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        found = True
++        inspect_obj(data)
++    if not found and "TodoWrite" in content:
++        for match in re.finditer(r'"status"\\s*:\\s*"([^"]+)"', content):
++            statuses.append(match.group(1))
++
++pending = sum(1 for status in statuses if status == "pending")
++in_progress = sum(1 for status in statuses if status == "in_progress")
++total = len(statuses)
++print(f"{pending} {in_progress} {total}")
++PY
++  )"
++  read -r pending_count in_progress_count total_count <<< "${counts}"
++  pending_count="${pending_count:-0}"
++  in_progress_count="${in_progress_count:-0}"
++
++  if [[ "${pending_count}" == "0" && "${in_progress_count}" == "0" ]]; then
++    decision="allow"
++    reason="todo-enforcer: no pending todos"
++    block_count=0
++  elif (( block_count >= 10 )); then
++    decision="allow"
++    reason="todo-enforcer: safety valve after 10 consecutive blocks"
++    block_count=0
++  else
++    decision="block"
++    reason="todo-enforcer: pending todos (pending=${pending_count}, in_progress=${in_progress_count})"
++    block_count=$((block_count + 1))
++  fi
++fi
++
++mkdir -p "${STATE_DIR}"
++printf '%s\n' "${block_count}" > "${STATE_FILE}"
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Adding activity logging after progress update**
+exec
+/bin/bash -lc '/home/ralph/ralph/bin/ralph log "Updated progress log for S08"' in /home/ralph/ClaudeCoder succeeded in 65ms:
+Using bundled templates: /home/ralph/ralph/.agents/ralph
+file update:
+diff --git a/.claude/hooks/workflows/todo-enforcer.sh b/.claude/hooks/workflows/todo-enforcer.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..200ab98b6e0be0bf70c154f41dbf6090b576b851
+--- /dev/null
++++ b/.claude/hooks/workflows/todo-enforcer.sh
+@@ -0,0 +1,157 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++CLAUDE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
++STATE_DIR="${CLAUDE_DIR}/.state"
++STATE_FILE="${STATE_DIR}/todo-enforcer.state"
++
++block_count=0
++if [[ -f "${STATE_FILE}" ]]; then
++  read -r block_count < "${STATE_FILE}" || true
++fi
++if ! [[ "${block_count}" =~ ^[0-9]+$ ]]; then
++  block_count=0
++fi
++
++decision="allow"
++reason="todo-enforcer: no pending todos"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="allow"
++  reason="todo-enforcer: no transcript available"
++  block_count=0
++else
++  counts="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import re
++import sys
++
++path = sys.argv[1]
++statuses = []
++
++def record_status(status):
++    if isinstance(status, str):
++        statuses.append(status)
++
++def inspect_obj(obj):
++    if isinstance(obj, dict):
++        tool_name = None
++        for key in ("tool_name", "toolName", "name", "tool"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                tool_name = value
++                break
++            if isinstance(value, dict):
++                nested = value.get("name")
++                if isinstance(nested, str):
++                    tool_name = nested
++                    break
++        if tool_name == "TodoWrite":
++            tool_input = None
++            for key in ("tool_input", "toolInput", "input"):
++                if key in obj:
++                    tool_input = obj.get(key)
++                    break
++            if isinstance(tool_input, dict):
++                todos = tool_input.get("todos")
++                if isinstance(todos, list):
++                    for todo in todos:
++                        if isinstance(todo, dict):
++                            record_status(todo.get("status"))
++        for value in obj.values():
++            inspect_obj(value)
++    elif isinstance(obj, list):
++        for item in obj:
++            inspect_obj(item)
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    inspect_obj(data)
++    return True
++
++if not os.path.exists(path):
++    print("0 0 0")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++parsed = parse_json_blob(content)
++if not parsed:
++    found = False
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        found = True
++        inspect_obj(data)
++    if not found and "TodoWrite" in content:
++        for match in re.finditer(r'"status"\\s*:\\s*"([^"]+)"', content):
++            statuses.append(match.group(1))
++
++pending = sum(1 for status in statuses if status == "pending")
++in_progress = sum(1 for status in statuses if status == "in_progress")
++total = len(statuses)
++print(f"{pending} {in_progress} {total}")
++PY
++  )"
++  read -r pending_count in_progress_count total_count <<< "${counts}"
++  pending_count="${pending_count:-0}"
++  in_progress_count="${in_progress_count:-0}"
++
++  if [[ "${pending_count}" == "0" && "${in_progress_count}" == "0" ]]; then
++    decision="allow"
++    reason="todo-enforcer: no pending todos"
++    block_count=0
++  elif (( block_count >= 10 )); then
++    decision="allow"
++    reason="todo-enforcer: safety valve after 10 consecutive blocks"
++    block_count=0
++  else
++    decision="block"
++    reason="todo-enforcer: pending todos (pending=${pending_count}, in_progress=${in_progress_count})"
++    block_count=$((block_count + 1))
++  fi
++fi
++
++mkdir -p "${STATE_DIR}"
++printf '%s\n' "${block_count}" > "${STATE_FILE}"
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Checking git status before commit**
+exec
+/bin/bash -lc 'git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 17ms:
+ M .ralph/activity.log
+ M .ralph/progress.md
+ M .ralph/runs/run-20260113-222321-527865-iter-8.log
+file update:
+diff --git a/.claude/hooks/workflows/todo-enforcer.sh b/.claude/hooks/workflows/todo-enforcer.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..200ab98b6e0be0bf70c154f41dbf6090b576b851
+--- /dev/null
++++ b/.claude/hooks/workflows/todo-enforcer.sh
+@@ -0,0 +1,157 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++CLAUDE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
++STATE_DIR="${CLAUDE_DIR}/.state"
++STATE_FILE="${STATE_DIR}/todo-enforcer.state"
++
++block_count=0
++if [[ -f "${STATE_FILE}" ]]; then
++  read -r block_count < "${STATE_FILE}" || true
++fi
++if ! [[ "${block_count}" =~ ^[0-9]+$ ]]; then
++  block_count=0
++fi
++
++decision="allow"
++reason="todo-enforcer: no pending todos"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="allow"
++  reason="todo-enforcer: no transcript available"
++  block_count=0
++else
++  counts="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import re
++import sys
++
++path = sys.argv[1]
++statuses = []
++
++def record_status(status):
++    if isinstance(status, str):
++        statuses.append(status)
++
++def inspect_obj(obj):
++    if isinstance(obj, dict):
++        tool_name = None
++        for key in ("tool_name", "toolName", "name", "tool"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                tool_name = value
++                break
++            if isinstance(value, dict):
++                nested = value.get("name")
++                if isinstance(nested, str):
++                    tool_name = nested
++                    break
++        if tool_name == "TodoWrite":
++            tool_input = None
++            for key in ("tool_input", "toolInput", "input"):
++                if key in obj:
++                    tool_input = obj.get(key)
++                    break
++            if isinstance(tool_input, dict):
++                todos = tool_input.get("todos")
++                if isinstance(todos, list):
++                    for todo in todos:
++                        if isinstance(todo, dict):
++                            record_status(todo.get("status"))
++        for value in obj.values():
++            inspect_obj(value)
++    elif isinstance(obj, list):
++        for item in obj:
++            inspect_obj(item)
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    inspect_obj(data)
++    return True
++
++if not os.path.exists(path):
++    print("0 0 0")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++parsed = parse_json_blob(content)
++if not parsed:
++    found = False
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        found = True
++        inspect_obj(data)
++    if not found and "TodoWrite" in content:
++        for match in re.finditer(r'"status"\\s*:\\s*"([^"]+)"', content):
++            statuses.append(match.group(1))
++
++pending = sum(1 for status in statuses if status == "pending")
++in_progress = sum(1 for status in statuses if status == "in_progress")
++total = len(statuses)
++print(f"{pending} {in_progress} {total}")
++PY
++  )"
++  read -r pending_count in_progress_count total_count <<< "${counts}"
++  pending_count="${pending_count:-0}"
++  in_progress_count="${in_progress_count:-0}"
++
++  if [[ "${pending_count}" == "0" && "${in_progress_count}" == "0" ]]; then
++    decision="allow"
++    reason="todo-enforcer: no pending todos"
++    block_count=0
++  elif (( block_count >= 10 )); then
++    decision="allow"
++    reason="todo-enforcer: safety valve after 10 consecutive blocks"
++    block_count=0
++  else
++    decision="block"
++    reason="todo-enforcer: pending todos (pending=${pending_count}, in_progress=${in_progress_count})"
++    block_count=$((block_count + 1))
++  fi
++fi
++
++mkdir -p "${STATE_DIR}"
++printf '%s\n' "${block_count}" > "${STATE_FILE}"
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Staging and committing changes**
+exec
 /bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder
