@@ -4681,4 +4681,345 @@ git commit -m "Finalize S09 run logs"
 
 git show -s --format="%h %s" HEAD
 
-git status --porcelain' in /home/ralph/ClaudeCoder
+git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 53ms:
+[main 9cd5a30] Finalize S09 run logs
+ 3 files changed, 877 insertions(+), 2 deletions(-)
+9cd5a30 Finalize S09 run logs
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+diff --git a/.ralph/progress.md b/.ralph/progress.md
+index b986b6444835d2ea5e2bee62ab1554c5c243c631..25a08188183cb4a206964b19b12dbcd693d8f2b2
+--- a/.ralph/progress.md
++++ b/.ralph/progress.md
+@@ -177,7 +177,7 @@
+ - Guardrails reviewed: yes
+ - No-commit run: false
+ - Commit: dad754d Add completion signal stop gate
+-- Post-commit status: clean
++- Post-commit status: .ralph/runs/run-20260113-222321-527865-iter-9.log (auto-updated by tool logging)
+ - Verification:
+   - Command: python3 -m py_compile hooks/*.py -> FAIL (no hooks/*.py)
+   - Command: bash -n hooks/**/*.sh -> FAIL (no hooks/**/*.sh)
+
+
+thinking
+**Summarizing final commit and verification status**
+
+I’m wrapping up by explaining the changes—especially the new completion-signal gate script—and noting test failures caused by the missing hooks directory. I’ll highlight the use of git commands due to the absent commit skill, mention updated logs and progress entries, and suggest next steps like creating the hooks directory or adjusting quality gates. Since tests didn’t fully pass, I won’t output the completion signal per instructions.
+codex
+Added the completion-signal stop gate to read `transcript_path` from stdin JSON, scan assistant output for `<promise>COMPLETE</promise>` with JSON/JSONL fallbacks, and emit a block/allow decision with a clear reason in `.claude/hooks/workflows/completion-signal.sh`. The progress/activity logs and run artifacts were updated as required. The `$commit` skill was not available, so I used `git` directly.
+
+Verification:
+- `python3 -m py_compile hooks/*.py` -> FAIL (no `hooks/*.py`)
+- `bash -n hooks/**/*.sh` -> FAIL (no `hooks/**/*.sh`)
+- `test -f .claude/guardrails.md` -> PASS
+
+Files touched:
+- `.claude/hooks/workflows/completion-signal.sh`
+- `.ralph/progress.md`
+- `.ralph/activity.log`
+- `.ralph/runs/run-20260113-222321-527865-iter-9.log`
+- plus existing run artifacts in `.ralph/` and `.agents/` from the iteration
+
+Commits:
+- `dad754d Add completion signal stop gate`
+- `fdea32f Update S09 logs`
+- `9cd5a30 Finalize S09 run logs`
+
+Next steps (optional):
+1. Create a `hooks/` directory or adjust the quality gate paths so `hooks/*.py` and `hooks/**/*.sh` exist and pass.
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+diff --git a/.ralph/progress.md b/.ralph/progress.md
+index b986b6444835d2ea5e2bee62ab1554c5c243c631..25a08188183cb4a206964b19b12dbcd693d8f2b2
+--- a/.ralph/progress.md
++++ b/.ralph/progress.md
+@@ -177,7 +177,7 @@
+ - Guardrails reviewed: yes
+ - No-commit run: false
+ - Commit: dad754d Add completion signal stop gate
+-- Post-commit status: clean
++- Post-commit status: .ralph/runs/run-20260113-222321-527865-iter-9.log (auto-updated by tool logging)
+ - Verification:
+   - Command: python3 -m py_compile hooks/*.py -> FAIL (no hooks/*.py)
+   - Command: bash -n hooks/**/*.sh -> FAIL (no hooks/**/*.sh)
+
+tokens used
+44,366
+Added the completion-signal stop gate to read `transcript_path` from stdin JSON, scan assistant output for `<promise>COMPLETE</promise>` with JSON/JSONL fallbacks, and emit a block/allow decision with a clear reason in `.claude/hooks/workflows/completion-signal.sh`. The progress/activity logs and run artifacts were updated as required. The `$commit` skill was not available, so I used `git` directly.
+
+Verification:
+- `python3 -m py_compile hooks/*.py` -> FAIL (no `hooks/*.py`)
+- `bash -n hooks/**/*.sh` -> FAIL (no `hooks/**/*.sh`)
+- `test -f .claude/guardrails.md` -> PASS
+
+Files touched:
+- `.claude/hooks/workflows/completion-signal.sh`
+- `.ralph/progress.md`
+- `.ralph/activity.log`
+- `.ralph/runs/run-20260113-222321-527865-iter-9.log`
+- plus existing run artifacts in `.ralph/` and `.agents/` from the iteration
+
+Commits:
+- `dad754d Add completion signal stop gate`
+- `fdea32f Update S09 logs`
+- `9cd5a30 Finalize S09 run logs`
+
+Next steps (optional):
+1. Create a `hooks/` directory or adjust the quality gate paths so `hooks/*.py` and `hooks/**/*.sh` exist and pass.
