@@ -4836,4 +4836,746 @@ index ac0ba9832939f5f20c588b87d8b268177c40e5be..2ba711ea8ba9789f113f99539ef802d7
 thinking
 **Committing all changes**
 exec
-/bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder
+/bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder succeeded in 25ms:
+
+file update:
+diff --git a/.claude/hooks/workflows/require-clean-lint.sh b/.claude/hooks/workflows/require-clean-lint.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..3e578f9b7c486819e8f89beeee97dd67fc44a8d2
+--- /dev/null
++++ b/.claude/hooks/workflows/require-clean-lint.sh
+@@ -0,0 +1,96 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++if [[ "${WORKFLOWS_SKIP_LINT:-}" == "true" ]]; then
++  echo "Skipping lint (WORKFLOWS_SKIP_LINT=true)."
++  exit 0
++fi
++
++has_npm_lint() {
++  [[ -f package.json ]] || return 1
++  python3 - <<'PY'
++import json
++import sys
++
++try:
++    with open("package.json", "r", encoding="utf-8") as handle:
++        data = json.load(handle)
++except Exception:
++    sys.exit(1)
++
++scripts = data.get("scripts", {})
++if isinstance(scripts, dict) and isinstance(scripts.get("lint"), str):
++    sys.exit(0)
++sys.exit(1)
++PY
++}
++
++has_ruff() {
++  if [[ -f ruff.toml ]]; then
++    return 0
++  fi
++  if [[ -f pyproject.toml ]] && grep -Eq "^\[tool\.ruff(\.lint)?\]" pyproject.toml; then
++    return 0
++  fi
++  return 1
++}
++
++has_eslint() {
++  if [[ -f .eslintrc || -f .eslintrc.js || -f .eslintrc.cjs || -f .eslintrc.json || -f .eslintrc.yaml || -f .eslintrc.yml ]]; then
++    return 0
++  fi
++  [[ -f package.json ]] || return 1
++  python3 - <<'PY'
++import json
++import sys
++
++try:
++    with open("package.json", "r", encoding="utf-8") as handle:
++        data = json.load(handle)
++except Exception:
++    sys.exit(1)
++
++if isinstance(data.get("eslintConfig"), dict):
++    sys.exit(0)
++
++for dep_key in ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies"):
++    deps = data.get(dep_key, {})
++    if isinstance(deps, dict) and "eslint" in deps:
++        sys.exit(0)
++
++sys.exit(1)
++PY
++}
++
++has_cargo() {
++  [[ -f Cargo.toml ]]
++}
++
++LINT_CMD=()
++LINT_LABEL=""
++if has_npm_lint; then
++  LINT_CMD=(npm run lint)
++  LINT_LABEL="npm run lint"
++elif has_ruff; then
++  LINT_CMD=(ruff check .)
++  LINT_LABEL="ruff"
++elif has_eslint; then
++  LINT_CMD=(npx --no-install eslint .)
++  LINT_LABEL="eslint"
++elif has_cargo; then
++  LINT_CMD=(cargo clippy)
++  LINT_LABEL="cargo clippy"
++fi
++
++if [[ ${#LINT_CMD[@]} -eq 0 ]]; then
++  echo "No lint infrastructure detected; skipping."
++  exit 0
++fi
++
++echo "Running lint: ${LINT_LABEL}"
++if ! "${LINT_CMD[@]}"; then
++  echo "Lint failed."
++  exit 1
++fi
++
++echo "Lint passed."
+diff --git a/.ralph/progress.md b/.ralph/progress.md
+index ac0ba9832939f5f20c588b87d8b268177c40e5be..2ba711ea8ba9789f113f99539ef802d760e7cf88
+--- a/.ralph/progress.md
++++ b/.ralph/progress.md
+@@ -75,11 +75,11 @@
+   - .ralph/runs/run-20260113-222321-527865-iter-2.log
+   - .ralph/runs/run-20260113-222321-527865-iter-2.md
+   - .ralph/runs/run-20260113-222321-527865-iter-3.log
+-- What was implemented
++- What was implemented: Added require-clean-lint.sh stop gate with npm/ruff/eslint/cargo detection and skip/exit handling.
+ - **Learnings for future iterations:**
+-  - Patterns discovered
+-  - Gotchas encountered
+-  - Useful context
++  - Patterns discovered: Lint detection can rely on config presence to avoid false positives.
++  - Gotchas encountered: Run log updates after commands keep the tree dirty.
++  - Useful context: Global quality gates currently point at non-existent hooks/ paths.
+ ---
+ ## [2026-01-13 22:47:58] - S06: Stop gate: require-clean-lint.sh
+ Thread: 
+@@ -88,7 +88,7 @@
+ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-6.md
+ - Guardrails reviewed: yes
+ - No-commit run: false
+-- Commit: c53a4e4 Update run log
++- Commit: 86fcd39 Add lint stop gate script
+ - Post-commit status: M .ralph/runs/run-20260113-222321-527865-iter-6.log
+ - Verification:
+   - Command: python3 -m py_compile hooks/*.py -> FAIL
+
+exec
+/bin/bash -lc 'git commit -m "Fix progress log commit reference"' in /home/ralph/ClaudeCoder succeeded in 31ms:
+[main 7e7b549] Fix progress log commit reference
+ 3 files changed, 940 insertions(+), 1 deletion(-)
+file update:
+diff --git a/.claude/hooks/workflows/require-clean-lint.sh b/.claude/hooks/workflows/require-clean-lint.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..3e578f9b7c486819e8f89beeee97dd67fc44a8d2
+--- /dev/null
++++ b/.claude/hooks/workflows/require-clean-lint.sh
+@@ -0,0 +1,96 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++if [[ "${WORKFLOWS_SKIP_LINT:-}" == "true" ]]; then
++  echo "Skipping lint (WORKFLOWS_SKIP_LINT=true)."
++  exit 0
++fi
++
++has_npm_lint() {
++  [[ -f package.json ]] || return 1
++  python3 - <<'PY'
++import json
++import sys
++
++try:
++    with open("package.json", "r", encoding="utf-8") as handle:
++        data = json.load(handle)
++except Exception:
++    sys.exit(1)
++
++scripts = data.get("scripts", {})
++if isinstance(scripts, dict) and isinstance(scripts.get("lint"), str):
++    sys.exit(0)
++sys.exit(1)
++PY
++}
++
++has_ruff() {
++  if [[ -f ruff.toml ]]; then
++    return 0
++  fi
++  if [[ -f pyproject.toml ]] && grep -Eq "^\[tool\.ruff(\.lint)?\]" pyproject.toml; then
++    return 0
++  fi
++  return 1
++}
++
++has_eslint() {
++  if [[ -f .eslintrc || -f .eslintrc.js || -f .eslintrc.cjs || -f .eslintrc.json || -f .eslintrc.yaml || -f .eslintrc.yml ]]; then
++    return 0
++  fi
++  [[ -f package.json ]] || return 1
++  python3 - <<'PY'
++import json
++import sys
++
++try:
++    with open("package.json", "r", encoding="utf-8") as handle:
++        data = json.load(handle)
++except Exception:
++    sys.exit(1)
++
++if isinstance(data.get("eslintConfig"), dict):
++    sys.exit(0)
++
++for dep_key in ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies"):
++    deps = data.get(dep_key, {})
++    if isinstance(deps, dict) and "eslint" in deps:
++        sys.exit(0)
++
++sys.exit(1)
++PY
++}
++
++has_cargo() {
++  [[ -f Cargo.toml ]]
++}
++
++LINT_CMD=()
++LINT_LABEL=""
++if has_npm_lint; then
++  LINT_CMD=(npm run lint)
++  LINT_LABEL="npm run lint"
++elif has_ruff; then
++  LINT_CMD=(ruff check .)
++  LINT_LABEL="ruff"
++elif has_eslint; then
++  LINT_CMD=(npx --no-install eslint .)
++  LINT_LABEL="eslint"
++elif has_cargo; then
++  LINT_CMD=(cargo clippy)
++  LINT_LABEL="cargo clippy"
++fi
++
++if [[ ${#LINT_CMD[@]} -eq 0 ]]; then
++  echo "No lint infrastructure detected; skipping."
++  exit 0
++fi
++
++echo "Running lint: ${LINT_LABEL}"
++if ! "${LINT_CMD[@]}"; then
++  echo "Lint failed."
++  exit 1
++fi
++
++echo "Lint passed."
+diff --git a/.ralph/progress.md b/.ralph/progress.md
+index ac0ba9832939f5f20c588b87d8b268177c40e5be..2ba711ea8ba9789f113f99539ef802d760e7cf88
+--- a/.ralph/progress.md
++++ b/.ralph/progress.md
+@@ -75,11 +75,11 @@
+   - .ralph/runs/run-20260113-222321-527865-iter-2.log
+   - .ralph/runs/run-20260113-222321-527865-iter-2.md
+   - .ralph/runs/run-20260113-222321-527865-iter-3.log
+-- What was implemented
++- What was implemented: Added require-clean-lint.sh stop gate with npm/ruff/eslint/cargo detection and skip/exit handling.
+ - **Learnings for future iterations:**
+-  - Patterns discovered
+-  - Gotchas encountered
+-  - Useful context
++  - Patterns discovered: Lint detection can rely on config presence to avoid false positives.
++  - Gotchas encountered: Run log updates after commands keep the tree dirty.
++  - Useful context: Global quality gates currently point at non-existent hooks/ paths.
+ ---
+ ## [2026-01-13 22:47:58] - S06: Stop gate: require-clean-lint.sh
+ Thread: 
+@@ -88,7 +88,7 @@
+ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-6.md
+ - Guardrails reviewed: yes
+ - No-commit run: false
+-- Commit: c53a4e4 Update run log
++- Commit: 86fcd39 Add lint stop gate script
+ - Post-commit status: M .ralph/runs/run-20260113-222321-527865-iter-6.log
+ - Verification:
+   - Command: python3 -m py_compile hooks/*.py -> FAIL
+
+
+thinking
+**Showing latest git commit**
+exec
+/bin/bash -lc 'git show -s --format="%h %s" HEAD' in /home/ralph/ClaudeCoder succeeded in 17ms:
+7e7b549 Fix progress log commit reference
+file update:
+diff --git a/.claude/hooks/workflows/require-clean-lint.sh b/.claude/hooks/workflows/require-clean-lint.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..3e578f9b7c486819e8f89beeee97dd67fc44a8d2
+--- /dev/null
++++ b/.claude/hooks/workflows/require-clean-lint.sh
+@@ -0,0 +1,96 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++if [[ "${WORKFLOWS_SKIP_LINT:-}" == "true" ]]; then
++  echo "Skipping lint (WORKFLOWS_SKIP_LINT=true)."
++  exit 0
++fi
++
++has_npm_lint() {
++  [[ -f package.json ]] || return 1
++  python3 - <<'PY'
++import json
++import sys
++
++try:
++    with open("package.json", "r", encoding="utf-8") as handle:
++        data = json.load(handle)
++except Exception:
++    sys.exit(1)
++
++scripts = data.get("scripts", {})
++if isinstance(scripts, dict) and isinstance(scripts.get("lint"), str):
++    sys.exit(0)
++sys.exit(1)
++PY
++}
++
++has_ruff() {
++  if [[ -f ruff.toml ]]; then
++    return 0
++  fi
++  if [[ -f pyproject.toml ]] && grep -Eq "^\[tool\.ruff(\.lint)?\]" pyproject.toml; then
++    return 0
++  fi
++  return 1
++}
++
++has_eslint() {
++  if [[ -f .eslintrc || -f .eslintrc.js || -f .eslintrc.cjs || -f .eslintrc.json || -f .eslintrc.yaml || -f .eslintrc.yml ]]; then
++    return 0
++  fi
++  [[ -f package.json ]] || return 1
++  python3 - <<'PY'
++import json
++import sys
++
++try:
++    with open("package.json", "r", encoding="utf-8") as handle:
++        data = json.load(handle)
++except Exception:
++    sys.exit(1)
++
++if isinstance(data.get("eslintConfig"), dict):
++    sys.exit(0)
++
++for dep_key in ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies"):
++    deps = data.get(dep_key, {})
++    if isinstance(deps, dict) and "eslint" in deps:
++        sys.exit(0)
++
++sys.exit(1)
++PY
++}
++
++has_cargo() {
++  [[ -f Cargo.toml ]]
++}
++
++LINT_CMD=()
++LINT_LABEL=""
++if has_npm_lint; then
++  LINT_CMD=(npm run lint)
++  LINT_LABEL="npm run lint"
++elif has_ruff; then
++  LINT_CMD=(ruff check .)
++  LINT_LABEL="ruff"
++elif has_eslint; then
++  LINT_CMD=(npx --no-install eslint .)
++  LINT_LABEL="eslint"
++elif has_cargo; then
++  LINT_CMD=(cargo clippy)
++  LINT_LABEL="cargo clippy"
++fi
++
++if [[ ${#LINT_CMD[@]} -eq 0 ]]; then
++  echo "No lint infrastructure detected; skipping."
++  exit 0
++fi
++
++echo "Running lint: ${LINT_LABEL}"
++if ! "${LINT_CMD[@]}"; then
++  echo "Lint failed."
++  exit 1
++fi
++
++echo "Lint passed."
+diff --git a/.ralph/progress.md b/.ralph/progress.md
+index ac0ba9832939f5f20c588b87d8b268177c40e5be..2ba711ea8ba9789f113f99539ef802d760e7cf88
+--- a/.ralph/progress.md
++++ b/.ralph/progress.md
+@@ -75,11 +75,11 @@
+   - .ralph/runs/run-20260113-222321-527865-iter-2.log
+   - .ralph/runs/run-20260113-222321-527865-iter-2.md
+   - .ralph/runs/run-20260113-222321-527865-iter-3.log
+-- What was implemented
++- What was implemented: Added require-clean-lint.sh stop gate with npm/ruff/eslint/cargo detection and skip/exit handling.
+ - **Learnings for future iterations:**
+-  - Patterns discovered
+-  - Gotchas encountered
+-  - Useful context
++  - Patterns discovered: Lint detection can rely on config presence to avoid false positives.
++  - Gotchas encountered: Run log updates after commands keep the tree dirty.
++  - Useful context: Global quality gates currently point at non-existent hooks/ paths.
+ ---
+ ## [2026-01-13 22:47:58] - S06: Stop gate: require-clean-lint.sh
+ Thread: 
+@@ -88,7 +88,7 @@
+ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-6.md
+ - Guardrails reviewed: yes
+ - No-commit run: false
+-- Commit: c53a4e4 Update run log
++- Commit: 86fcd39 Add lint stop gate script
+ - Post-commit status: M .ralph/runs/run-20260113-222321-527865-iter-6.log
+ - Verification:
+   - Command: python3 -m py_compile hooks/*.py -> FAIL
+
+
+thinking
+**Checking git status**
+exec
+/bin/bash -lc 'git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 15ms:
+ M .ralph/runs/run-20260113-222321-527865-iter-6.log
+file update:
+diff --git a/.claude/hooks/workflows/require-clean-lint.sh b/.claude/hooks/workflows/require-clean-lint.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..3e578f9b7c486819e8f89beeee97dd67fc44a8d2
+--- /dev/null
++++ b/.claude/hooks/workflows/require-clean-lint.sh
+@@ -0,0 +1,96 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++if [[ "${WORKFLOWS_SKIP_LINT:-}" == "true" ]]; then
++  echo "Skipping lint (WORKFLOWS_SKIP_LINT=true)."
++  exit 0
++fi
++
++has_npm_lint() {
++  [[ -f package.json ]] || return 1
++  python3 - <<'PY'
++import json
++import sys
++
++try:
++    with open("package.json", "r", encoding="utf-8") as handle:
++        data = json.load(handle)
++except Exception:
++    sys.exit(1)
++
++scripts = data.get("scripts", {})
++if isinstance(scripts, dict) and isinstance(scripts.get("lint"), str):
++    sys.exit(0)
++sys.exit(1)
++PY
++}
++
++has_ruff() {
++  if [[ -f ruff.toml ]]; then
++    return 0
++  fi
++  if [[ -f pyproject.toml ]] && grep -Eq "^\[tool\.ruff(\.lint)?\]" pyproject.toml; then
++    return 0
++  fi
++  return 1
++}
++
++has_eslint() {
++  if [[ -f .eslintrc || -f .eslintrc.js || -f .eslintrc.cjs || -f .eslintrc.json || -f .eslintrc.yaml || -f .eslintrc.yml ]]; then
++    return 0
++  fi
++  [[ -f package.json ]] || return 1
++  python3 - <<'PY'
++import json
++import sys
++
++try:
++    with open("package.json", "r", encoding="utf-8") as handle:
++        data = json.load(handle)
++except Exception:
++    sys.exit(1)
++
++if isinstance(data.get("eslintConfig"), dict):
++    sys.exit(0)
++
++for dep_key in ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies"):
++    deps = data.get(dep_key, {})
++    if isinstance(deps, dict) and "eslint" in deps:
++        sys.exit(0)
++
++sys.exit(1)
++PY
++}
++
++has_cargo() {
++  [[ -f Cargo.toml ]]
++}
++
++LINT_CMD=()
++LINT_LABEL=""
++if has_npm_lint; then
++  LINT_CMD=(npm run lint)
++  LINT_LABEL="npm run lint"
++elif has_ruff; then
++  LINT_CMD=(ruff check .)
++  LINT_LABEL="ruff"
++elif has_eslint; then
++  LINT_CMD=(npx --no-install eslint .)
++  LINT_LABEL="eslint"
++elif has_cargo; then
++  LINT_CMD=(cargo clippy)
++  LINT_LABEL="cargo clippy"
++fi
++
++if [[ ${#LINT_CMD[@]} -eq 0 ]]; then
++  echo "No lint infrastructure detected; skipping."
++  exit 0
++fi
++
++echo "Running lint: ${LINT_LABEL}"
++if ! "${LINT_CMD[@]}"; then
++  echo "Lint failed."
++  exit 1
++fi
++
++echo "Lint passed."
+diff --git a/.ralph/progress.md b/.ralph/progress.md
+index ac0ba9832939f5f20c588b87d8b268177c40e5be..2ba711ea8ba9789f113f99539ef802d760e7cf88
+--- a/.ralph/progress.md
++++ b/.ralph/progress.md
+@@ -75,11 +75,11 @@
+   - .ralph/runs/run-20260113-222321-527865-iter-2.log
+   - .ralph/runs/run-20260113-222321-527865-iter-2.md
+   - .ralph/runs/run-20260113-222321-527865-iter-3.log
+-- What was implemented
++- What was implemented: Added require-clean-lint.sh stop gate with npm/ruff/eslint/cargo detection and skip/exit handling.
+ - **Learnings for future iterations:**
+-  - Patterns discovered
+-  - Gotchas encountered
+-  - Useful context
++  - Patterns discovered: Lint detection can rely on config presence to avoid false positives.
++  - Gotchas encountered: Run log updates after commands keep the tree dirty.
++  - Useful context: Global quality gates currently point at non-existent hooks/ paths.
+ ---
+ ## [2026-01-13 22:47:58] - S06: Stop gate: require-clean-lint.sh
+ Thread: 
+@@ -88,7 +88,7 @@
+ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-6.md
+ - Guardrails reviewed: yes
+ - No-commit run: false
+-- Commit: c53a4e4 Update run log
++- Commit: 86fcd39 Add lint stop gate script
+ - Post-commit status: M .ralph/runs/run-20260113-222321-527865-iter-6.log
+ - Verification:
+   - Command: python3 -m py_compile hooks/*.py -> FAIL
+
+
+thinking
+**Summarizing final update and test results**
+
+I'm wrapping up with a detailed final response that explains the changes made, lists which tests ran and failed, and notes the presence of a remaining dirty run log file that wasn't committed due to auto-logging after the main commit. I'll highlight the missing commit skill requiring manual git commit, mention that quality gates failed because hook paths didn't exist, and include the relevant commit hashes for clarity. Also, I'll confirm that security, performance, and regression reviews were done, point out needed permissions on the `require-clean-lint.sh` script, and close with a completion signal to mark story verification despite the imperfect quality gates.
+codex
+Added the lint stop gate script to detect npm/ruff/eslint/cargo linting, honor `WORKFLOWS_SKIP_LINT=true`, and block on failures, matching the existing stop-gate style in `.claude/hooks/workflows/require-green-tests.sh`. I also logged required activity and updated the run/progress logs as instructed.
+
+**Verification**
+- `python3 -m py_compile hooks/*.py` -> FAIL (no `hooks/` dir in repo)
+- `bash -n hooks/**/*.sh` -> FAIL (no `hooks/` dir in repo)
+- `test -f .claude/guardrails.md` -> PASS
+
+**Notes**
+- Commit skill `$commit` was not available in the skill list, so I used manual `git` commands.
+- Working tree remains dirty because `.ralph/runs/run-20260113-222321-527865-iter-6.log` is auto-appended after each command.
+
+**Files touched**
+- `.claude/hooks/workflows/require-clean-lint.sh`
+- `.ralph/progress.md`
+- `.ralph/activity.log`
+- `.ralph/runs/run-20260113-222321-527865-iter-6.log`
+
+**Reviews**
+- Security: no new exposure; only local command selection and execution.
+- Performance: no added heavy loops; simple file checks.
+- Regression: only new stop-gate script added; no changes to existing hooks.
+
+**Next steps**
+1) If you want the global quality gates to pass, add a top-level `hooks/` path or adjust those commands to target `.claude/hooks/` in a future story.
+
+<promise>COMPLETE</promise>
+file update:
+diff --git a/.claude/hooks/workflows/require-clean-lint.sh b/.claude/hooks/workflows/require-clean-lint.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..3e578f9b7c486819e8f89beeee97dd67fc44a8d2
+--- /dev/null
++++ b/.claude/hooks/workflows/require-clean-lint.sh
+@@ -0,0 +1,96 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++if [[ "${WORKFLOWS_SKIP_LINT:-}" == "true" ]]; then
++  echo "Skipping lint (WORKFLOWS_SKIP_LINT=true)."
++  exit 0
++fi
++
++has_npm_lint() {
++  [[ -f package.json ]] || return 1
++  python3 - <<'PY'
++import json
++import sys
++
++try:
++    with open("package.json", "r", encoding="utf-8") as handle:
++        data = json.load(handle)
++except Exception:
++    sys.exit(1)
++
++scripts = data.get("scripts", {})
++if isinstance(scripts, dict) and isinstance(scripts.get("lint"), str):
++    sys.exit(0)
++sys.exit(1)
++PY
++}
++
++has_ruff() {
++  if [[ -f ruff.toml ]]; then
++    return 0
++  fi
++  if [[ -f pyproject.toml ]] && grep -Eq "^\[tool\.ruff(\.lint)?\]" pyproject.toml; then
++    return 0
++  fi
++  return 1
++}
++
++has_eslint() {
++  if [[ -f .eslintrc || -f .eslintrc.js || -f .eslintrc.cjs || -f .eslintrc.json || -f .eslintrc.yaml || -f .eslintrc.yml ]]; then
++    return 0
++  fi
++  [[ -f package.json ]] || return 1
++  python3 - <<'PY'
++import json
++import sys
++
++try:
++    with open("package.json", "r", encoding="utf-8") as handle:
++        data = json.load(handle)
++except Exception:
++    sys.exit(1)
++
++if isinstance(data.get("eslintConfig"), dict):
++    sys.exit(0)
++
++for dep_key in ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies"):
++    deps = data.get(dep_key, {})
++    if isinstance(deps, dict) and "eslint" in deps:
++        sys.exit(0)
++
++sys.exit(1)
++PY
++}
++
++has_cargo() {
++  [[ -f Cargo.toml ]]
++}
++
++LINT_CMD=()
++LINT_LABEL=""
++if has_npm_lint; then
++  LINT_CMD=(npm run lint)
++  LINT_LABEL="npm run lint"
++elif has_ruff; then
++  LINT_CMD=(ruff check .)
++  LINT_LABEL="ruff"
++elif has_eslint; then
++  LINT_CMD=(npx --no-install eslint .)
++  LINT_LABEL="eslint"
++elif has_cargo; then
++  LINT_CMD=(cargo clippy)
++  LINT_LABEL="cargo clippy"
++fi
++
++if [[ ${#LINT_CMD[@]} -eq 0 ]]; then
++  echo "No lint infrastructure detected; skipping."
++  exit 0
++fi
++
++echo "Running lint: ${LINT_LABEL}"
++if ! "${LINT_CMD[@]}"; then
++  echo "Lint failed."
++  exit 1
++fi
++
++echo "Lint passed."
+diff --git a/.ralph/progress.md b/.ralph/progress.md
+index ac0ba9832939f5f20c588b87d8b268177c40e5be..2ba711ea8ba9789f113f99539ef802d760e7cf88
+--- a/.ralph/progress.md
++++ b/.ralph/progress.md
+@@ -75,11 +75,11 @@
+   - .ralph/runs/run-20260113-222321-527865-iter-2.log
+   - .ralph/runs/run-20260113-222321-527865-iter-2.md
+   - .ralph/runs/run-20260113-222321-527865-iter-3.log
+-- What was implemented
++- What was implemented: Added require-clean-lint.sh stop gate with npm/ruff/eslint/cargo detection and skip/exit handling.
+ - **Learnings for future iterations:**
+-  - Patterns discovered
+-  - Gotchas encountered
+-  - Useful context
++  - Patterns discovered: Lint detection can rely on config presence to avoid false positives.
++  - Gotchas encountered: Run log updates after commands keep the tree dirty.
++  - Useful context: Global quality gates currently point at non-existent hooks/ paths.
+ ---
+ ## [2026-01-13 22:47:58] - S06: Stop gate: require-clean-lint.sh
+ Thread: 
+@@ -88,7 +88,7 @@
+ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-6.md
+ - Guardrails reviewed: yes
+ - No-commit run: false
+-- Commit: c53a4e4 Update run log
++- Commit: 86fcd39 Add lint stop gate script
+ - Post-commit status: M .ralph/runs/run-20260113-222321-527865-iter-6.log
+ - Verification:
+   - Command: python3 -m py_compile hooks/*.py -> FAIL
+
+tokens used
+72,713
+Added the lint stop gate script to detect npm/ruff/eslint/cargo linting, honor `WORKFLOWS_SKIP_LINT=true`, and block on failures, matching the existing stop-gate style in `.claude/hooks/workflows/require-green-tests.sh`. I also logged required activity and updated the run/progress logs as instructed.
+
+**Verification**
+- `python3 -m py_compile hooks/*.py` -> FAIL (no `hooks/` dir in repo)
+- `bash -n hooks/**/*.sh` -> FAIL (no `hooks/` dir in repo)
+- `test -f .claude/guardrails.md` -> PASS
+
+**Notes**
+- Commit skill `$commit` was not available in the skill list, so I used manual `git` commands.
+- Working tree remains dirty because `.ralph/runs/run-20260113-222321-527865-iter-6.log` is auto-appended after each command.
+
+**Files touched**
+- `.claude/hooks/workflows/require-clean-lint.sh`
+- `.ralph/progress.md`
+- `.ralph/activity.log`
+- `.ralph/runs/run-20260113-222321-527865-iter-6.log`
+
+**Reviews**
+- Security: no new exposure; only local command selection and execution.
+- Performance: no added heavy loops; simple file checks.
+- Regression: only new stop-gate script added; no changes to existing hooks.
+
+**Next steps**
+1) If you want the global quality gates to pass, add a top-level `hooks/` path or adjust those commands to target `.claude/hooks/` in a future story.
+
+<promise>COMPLETE</promise>
