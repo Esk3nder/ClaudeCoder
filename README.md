@@ -16,7 +16,38 @@ A behavioral specification for coding agents. Focus on **what** and **when**, no
 
 ## Quick Start
 
-### Install (one-time)
+### Install with CLI (recommended)
+
+```bash
+git clone https://github.com/Esk3nder/ClaudeCoder.git
+cd ClaudeCoder
+npm link
+coder install
+```
+
+### CLI Commands
+
+```bash
+# Install hooks to ~/.claude
+coder install
+
+# Create a new plan
+coder plan "Add user authentication"
+
+# Run 5 iterations on the most recent plan
+coder build 5
+
+# Run with skipped tests
+coder build 3 --skip-tests
+
+# Skip git operations
+coder build 1 --no-commit
+
+# Show help
+coder --help
+```
+
+### Install (manual alternative)
 
 ```bash
 git clone https://github.com/Esk3nder/ClaudeCoder.git
