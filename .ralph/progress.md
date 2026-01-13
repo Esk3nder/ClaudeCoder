@@ -177,7 +177,7 @@ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter
 - Guardrails reviewed: yes
 - No-commit run: false
 - Commit: dad754d Add completion signal stop gate
-- Post-commit status: clean
+- Post-commit status: .ralph/runs/run-20260113-222321-527865-iter-9.log (auto-updated by tool logging)
 - Verification:
   - Command: python3 -m py_compile hooks/*.py -> FAIL (no hooks/*.py)
   - Command: bash -n hooks/**/*.sh -> FAIL (no hooks/**/*.sh)
