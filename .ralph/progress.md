@@ -105,3 +105,35 @@ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter
   - Gotchas encountered
   - Useful context
 ---
+## [2026-01-13 22:53:18 CET] - S07: Stop gate: require-clean-types.sh
+Thread: 
+Run: 20260113-222321-527865 (iteration 7)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-7.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-7.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: 7a1cb8f Add type check stop gate
+- Post-commit status: dirty (.ralph/runs/run-20260113-222321-527865-iter-7.log)
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL
+  - Command: bash -n hooks/**/*.sh -> FAIL
+  - Command: test -f .claude/guardrails.md -> PASS
+- Files changed:
+  - .claude/hooks/workflows/require-clean-types.sh
+  - .agents/tasks/prd-claudecoder.json
+  - .ralph/activity.log
+  - .ralph/errors.log
+  - .ralph/progress.md
+  - .ralph/runs/run-20260113-222321-527865-iter-6.log
+  - .ralph/runs/run-20260113-222321-527865-iter-6.md
+  - .ralph/runs/run-20260113-222321-527865-iter-7.log
+  - .ralph/.tmp/prompt-20260113-222321-527865-7.md
+  - .ralph/.tmp/story-20260113-222321-527865-7.json
+  - .ralph/.tmp/story-20260113-222321-527865-7.md
+- What was implemented
+  - Added a type-check stop gate that auto-detects tsc, pyright, and mypy with a skip override.
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered
+  - Useful context
+---
