@@ -1823,4 +1823,1028 @@ index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf
 thinking
 **Handling untracked files and preparing commit**
 exec
+/bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder succeeded in 26ms:
+
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Checking git status before commit**
+exec
+/bin/bash -lc 'git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 22ms:
+A  .agents/tasks/prd-claudecoder.json
+A  .claude/hooks/.gitkeep
+A  .claude/hooks/state/.gitkeep
+A  .claude/hooks/workflows/.gitkeep
+A  .ralph/.tmp/prd-prompt-20260113-221008-526568.md
+A  .ralph/.tmp/prd-prompt-20260113-221047-526716.md
+A  .ralph/.tmp/prompt-20260113-222321-527865-1.md
+A  .ralph/.tmp/story-20260113-222321-527865-1.json
+A  .ralph/.tmp/story-20260113-222321-527865-1.md
+A  .ralph/activity.log
+A  .ralph/errors.log
+A  .ralph/guardrails.md
+A  .ralph/progress.md
+AM .ralph/runs/run-20260113-222321-527865-iter-1.log
+A  plans/.gitkeep
+A  plans/20260113-claudecoder.md
+A  settings.json.example
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Reviewing and staging files for commit**
+exec
+/bin/bash -lc 'git commit -m "Add base hook directories and settings template"' in /home/ralph/ClaudeCoder exited 128 in 22ms:
+Author identity unknown
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+
+to set your account's default identity.
+Omit --global to set the identity only in this repository.
+
+fatal: empty ident name (for <ralph@vmi3015478.contaboserver.net>) not allowed
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Setting local git identity**
+exec
+/bin/bash -lc 'git config user.name "ClaudeCoder"' in /home/ralph/ClaudeCoder succeeded in 19ms:
+
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Setting email**
+exec
+/bin/bash -lc 'git config user.email "claudecoder@example.com"' in /home/ralph/ClaudeCoder succeeded in 20ms:
+
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Retrying commit**
+exec
+/bin/bash -lc 'git commit -m "Add base hook directories and settings template"' in /home/ralph/ClaudeCoder succeeded in 27ms:
+[main (root-commit) fd6c7e7] Add base hook directories and settings template
+ 17 files changed, 2407 insertions(+)
+ create mode 100644 .agents/tasks/prd-claudecoder.json
+ create mode 100644 .claude/hooks/.gitkeep
+ create mode 100644 .claude/hooks/state/.gitkeep
+ create mode 100644 .claude/hooks/workflows/.gitkeep
+ create mode 100644 .ralph/.tmp/prd-prompt-20260113-221008-526568.md
+ create mode 100644 .ralph/.tmp/prd-prompt-20260113-221047-526716.md
+ create mode 100644 .ralph/.tmp/prompt-20260113-222321-527865-1.md
+ create mode 100644 .ralph/.tmp/story-20260113-222321-527865-1.json
+ create mode 100644 .ralph/.tmp/story-20260113-222321-527865-1.md
+ create mode 100644 .ralph/activity.log
+ create mode 100644 .ralph/errors.log
+ create mode 100644 .ralph/guardrails.md
+ create mode 100644 .ralph/progress.md
+ create mode 100644 .ralph/runs/run-20260113-222321-527865-iter-1.log
+ create mode 100644 plans/.gitkeep
+ create mode 100644 plans/20260113-claudecoder.md
+ create mode 100644 settings.json.example
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Checking post-commit status**
+exec
+/bin/bash -lc 'git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 19ms:
+ M .ralph/runs/run-20260113-222321-527865-iter-1.log
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Checking for updated commit logs**
+exec
+/bin/bash -lc 'git show -s --format="%h %s" HEAD' in /home/ralph/ClaudeCoder succeeded in 15ms:
+fd6c7e7 Add base hook directories and settings template
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Updating progress logging**
+exec
+/bin/bash -lc 'date "+%Y-%m-%d %H:%M:%S %Z"' in /home/ralph/ClaudeCoder succeeded in 18ms:
+2026-01-13 22:26:07 CET
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Recording progress entry with commit details**
+exec
+/bin/bash -lc "cat <<'EOF' >> /home/ralph/ClaudeCoder/.ralph/progress.md
+
+## [2026-01-13 22:26:07 CET] - S01: Directory structure and settings.json template
+Thread: 
+Run: 20260113-222321-527865 (iteration 1)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-1.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-1.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: fd6c7e7 Add base hook directories and settings template
+- Post-commit status: .ralph/runs/run-20260113-222321-527865-iter-1.log (modified)
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL
+  - Command: bash -n hooks/**/*.sh -> FAIL
+  - Command: test -f .claude/guardrails.md -> FAIL
+- Files changed:
+  - .claude/hooks/.gitkeep
+  - .claude/hooks/state/.gitkeep
+  - .claude/hooks/workflows/.gitkeep
+  - plans/.gitkeep
+  - settings.json.example
+  - .ralph/activity.log
+  - .ralph/errors.log
+  - .ralph/guardrails.md
+  - .ralph/progress.md
+  - .ralph/runs/run-20260113-222321-527865-iter-1.log
+  - .ralph/.tmp/prd-prompt-20260113-221008-526568.md
+  - .ralph/.tmp/prd-prompt-20260113-221047-526716.md
+  - .ralph/.tmp/prompt-20260113-222321-527865-1.md
+  - .ralph/.tmp/story-20260113-222321-527865-1.json
+  - .ralph/.tmp/story-20260113-222321-527865-1.md
+  - .agents/tasks/prd-claudecoder.json
+  - plans/20260113-claudecoder.md
+- What was implemented
+  - Created .claude hooks directory structure and added settings.json.example with hook wiring.
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered
+  - Useful context
+---
+EOF" in /home/ralph/ClaudeCoder succeeded in 36ms:
+
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Adding activity log feature**
+exec
+/bin/bash -lc '/home/ralph/ralph/bin/ralph log "Appended S01 progress entry"' in /home/ralph/ClaudeCoder succeeded in 118ms:
+Using bundled templates: /home/ralph/ralph/.agents/ralph
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Preparing to commit and update logs**
+exec
+/bin/bash -lc 'git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 29ms:
+ M .ralph/activity.log
+ M .ralph/progress.md
+ M .ralph/runs/run-20260113-222321-527865-iter-1.log
+file update:
+diff --git a/.claude/hooks/.gitkeep b/.claude/hooks/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/state/.gitkeep b/.claude/hooks/state/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/state/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/.claude/hooks/workflows/.gitkeep b/.claude/hooks/workflows/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/.claude/hooks/workflows/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/plans/.gitkeep b/plans/.gitkeep
+new file mode 100644
+index 0000000000000000000000000000000000000000..f358c74ccf8fcbef2be8fa11d7f4514c0dcdc4ed
+--- /dev/null
++++ b/plans/.gitkeep
+@@ -0,0 +1 @@
++# Placeholder to keep directory in version control.
+diff --git a/settings.json.example b/settings.json.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..beaae27cb16c504977ced0d3bee9a2bf9966a33a
+--- /dev/null
++++ b/settings.json.example
+@@ -0,0 +1,36 @@
++{
++  "hooks": {
++    "UserPromptSubmit": [
++      {
++        "command": "python3 .claude/hooks/keyword-detector.py"
++      }
++    ],
++    "PreToolUse": [
++      {
++        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
++      }
++    ],
++    "PostToolUse": [
++      {
++        "command": "python3 .claude/hooks/progress-logger.py"
++      }
++    ],
++    "Stop": [
++      {
++        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
++      },
++      {
++        "command": "bash .claude/hooks/workflows/completion-signal.sh"
++      }
++    ]
++  }
++}
+
+
+thinking
+**Preparing to commit log updates**
+exec
 /bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder
