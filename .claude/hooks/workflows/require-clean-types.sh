@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+emit_json() {
+  local decision="$1"
+  local reason="$2"
+  python3 -c "import json; print(json.dumps({'decision': '$decision', 'reason': '$reason'}))"
+}
+
 if [[ "${WORKFLOWS_SKIP_TYPES:-}" == "true" ]]; then
-  echo "Skipping types (WORKFLOWS_SKIP_TYPES=true)."
+  emit_json "approve" "require-clean-types: skipped (WORKFLOWS_SKIP_TYPES=true)"
   exit 0
 fi
 
@@ -74,14 +80,14 @@ elif has_mypy; then
 fi
 
 if [[ ${#TYPE_CMD[@]} -eq 0 ]]; then
-  echo "No type infrastructure detected; skipping."
+  emit_json "approve" "require-clean-types: no type infrastructure detected"
   exit 0
 fi
 
-echo "Running types: ${TYPE_LABEL}"
-if ! "${TYPE_CMD[@]}"; then
-  echo "Type check failed."
+echo "Running types: ${TYPE_LABEL}" >&2
+if ! "${TYPE_CMD[@]}" >&2; then
+  emit_json "block" "require-clean-types: type check failed"
   exit 1
 fi
 
-echo "Types passed."
+emit_json "approve" "require-clean-types: types passed"

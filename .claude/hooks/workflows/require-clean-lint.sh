@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+emit_json() {
+  local decision="$1"
+  local reason="$2"
+  python3 -c "import json; print(json.dumps({'decision': '$decision', 'reason': '$reason'}))"
+}
+
 if [[ "${WORKFLOWS_SKIP_LINT:-}" == "true" ]]; then
-  echo "Skipping lint (WORKFLOWS_SKIP_LINT=true)."
+  emit_json "approve" "require-clean-lint: skipped (WORKFLOWS_SKIP_LINT=true)"
   exit 0
 fi
 
@@ -83,14 +89,14 @@ elif has_cargo; then
 fi
 
 if [[ ${#LINT_CMD[@]} -eq 0 ]]; then
-  echo "No lint infrastructure detected; skipping."
+  emit_json "approve" "require-clean-lint: no lint infrastructure detected"
   exit 0
 fi
 
-echo "Running lint: ${LINT_LABEL}"
-if ! "${LINT_CMD[@]}"; then
-  echo "Lint failed."
+echo "Running lint: ${LINT_LABEL}" >&2
+if ! "${LINT_CMD[@]}" >&2; then
+  emit_json "block" "require-clean-lint: lint failed"
   exit 1
 fi
 
-echo "Lint passed."
+emit_json "approve" "require-clean-lint: lint passed"

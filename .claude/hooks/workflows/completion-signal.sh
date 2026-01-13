@@ -105,7 +105,7 @@ print("yes" if found else "no")
 PY
   )"
   if [[ "${found}" == "yes" ]]; then
-    decision="allow"
+    decision="approve"
     reason="completion-signal: found <promise>COMPLETE</promise>"
   else
     decision="block"

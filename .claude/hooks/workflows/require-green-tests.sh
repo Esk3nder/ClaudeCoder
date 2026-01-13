@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+emit_json() {
+  local decision="$1"
+  local reason="$2"
+  python3 -c "import json; print(json.dumps({'decision': '$decision', 'reason': '$reason'}))"
+}
+
 if [[ "${WORKFLOWS_SKIP_TESTS:-}" == "true" ]]; then
-  echo "Skipping tests (WORKFLOWS_SKIP_TESTS=true)."
+  emit_json "approve" "require-green-tests: skipped (WORKFLOWS_SKIP_TESTS=true)"
   exit 0
 fi
 
@@ -68,13 +74,13 @@ elif has_go; then
 fi
 
 if [[ ${#TEST_CMD[@]} -eq 0 ]]; then
-  echo "No test infrastructure detected; skipping."
+  emit_json "approve" "require-green-tests: no test infrastructure detected"
   exit 0
 fi
 
-echo "Running tests: ${TEST_LABEL}"
-if ! "${TEST_CMD[@]}"; then
-  echo "Tests failed."
+echo "Running tests: ${TEST_LABEL}" >&2
+if ! "${TEST_CMD[@]}" >&2; then
+  emit_json "block" "require-green-tests: tests failed"
   exit 1
 fi
 
@@ -93,4 +99,4 @@ temp_file="${STATE_FILE}.tmp"
 } > "${temp_file}"
 mv "${temp_file}" "${STATE_FILE}"
 
-echo "Tests passed; cached results."
+emit_json "approve" "require-green-tests: tests passed"

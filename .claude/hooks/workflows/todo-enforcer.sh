@@ -34,11 +34,11 @@ if ! [[ "${block_count}" =~ ^[0-9]+$ ]]; then
   block_count=0
 fi
 
-decision="allow"
+decision="approve"
 reason="todo-enforcer: no pending todos"
 
 if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
-  decision="allow"
+  decision="approve"
   reason="todo-enforcer: no transcript available"
   block_count=0
 else
@@ -130,11 +130,11 @@ PY
   in_progress_count="${in_progress_count:-0}"
 
   if [[ "${pending_count}" == "0" && "${in_progress_count}" == "0" ]]; then
-    decision="allow"
+    decision="approve"
     reason="todo-enforcer: no pending todos"
     block_count=0
   elif (( block_count >= 10 )); then
-    decision="allow"
+    decision="approve"
     reason="todo-enforcer: safety valve after 10 consecutive blocks"
     block_count=0
   else
