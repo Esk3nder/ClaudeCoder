@@ -2146,4 +2146,485 @@ index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669
 thinking
 **Staging and committing changes**
 exec
-/bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder
+/bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder succeeded in 25ms:
+
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Writing commit message**
+exec
+/bin/bash -lc 'git commit -m "Update progress log for S03"' in /home/ralph/ClaudeCoder succeeded in 30ms:
+[main 11c3848] Update progress log for S03
+ 3 files changed, 878 insertions(+)
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Verifying clean status**
+exec
+/bin/bash -lc 'git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 25ms:
+ M .ralph/runs/run-20260113-222321-527865-iter-3.log
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Analyzing run log update challenges**
+
+The run log keeps getting updated automatically after commands, causing persistent file modifications that make it impossible to achieve a perfectly clean working tree after commits. I'm trying to balance the requirement to run `git show` after final commits while managing this run log noise—accepting some dirtiness seems necessary given how the system logs each shell command.
+exec
+/bin/bash -lc 'git show -s --format="%h %s" HEAD' in /home/ralph/ClaudeCoder succeeded in 22ms:
+11c3848 Update progress log for S03
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Preparing final summary and response**
+
+I'm organizing a detailed final message that explains the code changes, test results including failures, missing commit skill usage, commits made, and working tree status. I'll include security, performance, and regression review notes, mention progress log updates, and suggest natural next steps for fixing quality gate issues—all while respecting instructions to avoid questions and end with the completion signal.
+codex
+Implemented the PreToolUse advisory hook that reads `session-context.json` and emits allow decisions with context-aware guidance for Read/Grep/Glob/Bash tools in `.claude/hooks/parallel-dispatch-guide.py`. The hook mirrors the existing fail-safe pattern and always returns `permissionDecision=allow`, while incorporating detected intent/flags from the session context.
+
+Details
+- Added advisory guidance map and session-context reader in `.claude/hooks/parallel-dispatch-guide.py`.
+- Fail-safe behavior: on any error, returns allow with a default advisory reason.
+
+Security/Performance/Regression review
+- Security: no new external inputs beyond local session state; defaults to allow with minimal data exposure.
+- Performance: trivial file read and string formatting; no heavy loops.
+- Regression: hook is additive and allows all tools; should not block any workflows.
+
+Tests / Verification
+- `python3 -m py_compile hooks/*.py` -> FAIL (no `hooks/` directory)
+- `bash -n hooks/**/*.sh` -> FAIL (no `hooks/` directory)
+- `test -f .claude/guardrails.md` -> PASS
+
+Commits
+- `3d9a631 Add PreToolUse advisory hook`
+- `11c3848 Update progress log for S03`
+
+Notes
+- `$commit` skill not available; used `git` directly per fallback guidance.
+- Working tree may remain dirty due to auto-updating run log (`.ralph/runs/run-20260113-222321-527865-iter-3.log`) on each tool call.
+
+Next steps (optional)
+1. Align quality gate paths (e.g., create a `hooks/` dir or update gate commands) and re-run the gates.
+
+<promise>COMPLETE</promise>
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+tokens used
+31,325
+Implemented the PreToolUse advisory hook that reads `session-context.json` and emits allow decisions with context-aware guidance for Read/Grep/Glob/Bash tools in `.claude/hooks/parallel-dispatch-guide.py`. The hook mirrors the existing fail-safe pattern and always returns `permissionDecision=allow`, while incorporating detected intent/flags from the session context.
+
+Details
+- Added advisory guidance map and session-context reader in `.claude/hooks/parallel-dispatch-guide.py`.
+- Fail-safe behavior: on any error, returns allow with a default advisory reason.
+
+Security/Performance/Regression review
+- Security: no new external inputs beyond local session state; defaults to allow with minimal data exposure.
+- Performance: trivial file read and string formatting; no heavy loops.
+- Regression: hook is additive and allows all tools; should not block any workflows.
+
+Tests / Verification
+- `python3 -m py_compile hooks/*.py` -> FAIL (no `hooks/` directory)
+- `bash -n hooks/**/*.sh` -> FAIL (no `hooks/` directory)
+- `test -f .claude/guardrails.md` -> PASS
+
+Commits
+- `3d9a631 Add PreToolUse advisory hook`
+- `11c3848 Update progress log for S03`
+
+Notes
+- `$commit` skill not available; used `git` directly per fallback guidance.
+- Working tree may remain dirty due to auto-updating run log (`.ralph/runs/run-20260113-222321-527865-iter-3.log`) on each tool call.
+
+Next steps (optional)
+1. Align quality gate paths (e.g., create a `hooks/` dir or update gate commands) and re-run the gates.
+
+<promise>COMPLETE</promise>

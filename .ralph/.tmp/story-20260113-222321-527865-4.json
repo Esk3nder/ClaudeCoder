@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "total": 12,
+  "remaining": 9,
+  "quality_gates": [
+    "python3 -m py_compile hooks/*.py",
+    "bash -n hooks/**/*.sh",
+    "test -f .claude/guardrails.md"
+  ],
+  "id": "S04",
+  "title": "PostToolUse hook (progress-logger)"
+}
