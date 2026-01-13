@@ -1,0 +1,27 @@
+{
+  "name": "claudecoder",
+  "version": "0.1.0",
+  "description": "Plan-driven execution wrapper for Claude Code",
+  "type": "module",
+  "bin": {
+    "coder": "./bin/coder.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    ".claude/",
+    "plans/",
+    "install.sh",
+    "settings.json.example"
+  ],
+  "keywords": [
+    "claude",
+    "cli",
+    "automation",
+    "coding-agent"
+  ],
+  "license": "MIT"
+}
