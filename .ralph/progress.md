@@ -236,3 +236,34 @@ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter
   - Gotchas encountered: Global quality gate paths still point at hooks/ instead of .claude/hooks/.
   - Useful context: CLAUDE.md now defines trivial vs open-ended classification.
 ---
+## [2026-01-13 23:17:49 CET] - S12: Install script
+Thread: 
+Run: 20260113-222321-527865 (iteration 12)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-12.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-12.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: ab4b3e6 Add install script for Claude Code setup
+- Post-commit status: clean
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL
+  - Command: bash -n hooks/**/*.sh -> FAIL
+  - Command: test -f .claude/guardrails.md -> PASS
+- Files changed:
+  - .agents/tasks/prd-claudecoder.json
+  - .ralph/.tmp/prompt-20260113-222321-527865-12.md
+  - .ralph/.tmp/story-20260113-222321-527865-12.json
+  - .ralph/.tmp/story-20260113-222321-527865-12.md
+  - .ralph/activity.log
+  - .ralph/errors.log
+  - .ralph/runs/run-20260113-222321-527865-iter-11.log
+  - .ralph/runs/run-20260113-222321-527865-iter-11.md
+  - .ralph/runs/run-20260113-222321-527865-iter-12.log
+  - install.sh
+- What was implemented
+  - Added install.sh to create ~/.claude directories, copy hooks, merge settings.json hooks, and seed guardrails.
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered: Global quality gates still target hooks/*.py and hooks/**/*.sh which do not exist in this repo.
+  - Useful context
+---

@@ -1639,4 +1639,871 @@ thinking
 
 There is a tricky conflict in the instructions about when to commit and when to append progress logs and activity logs, since all changes must be committed but the steps say to commit before appending progress. I'm sorting through possible interpretations and plan to do an initial commit including code and current logs, then append the progress and activity logs, and do a second commit to include those, keeping the working tree clean and following the strict sequence as closely as possible. I'll also perform security and regression reviews before the first commit and capture the commit hash then. This approach reconciles the conflicting instructions while respecting all requirements.
 exec
+/bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder succeeded in 70ms:
+
+file update:
+diff --git a/install.sh b/install.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0e2db1eb14faa8e2c8684eb6da3f74671e424e53
+--- /dev/null
++++ b/install.sh
+@@ -0,0 +1,86 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++REPO_ROOT="${SCRIPT_DIR}"
++
++SOURCE_HOOKS="${REPO_ROOT}/.claude/hooks"
++SOURCE_GUARDRAILS="${REPO_ROOT}/.claude/guardrails.md"
++SOURCE_SETTINGS="${REPO_ROOT}/settings.json.example"
++
++TARGET_CLAUDE="${HOME}/.claude"
++TARGET_HOOKS="${TARGET_CLAUDE}/hooks"
++TARGET_WORKFLOWS="${TARGET_HOOKS}/workflows"
++TARGET_STATE="${TARGET_HOOKS}/state"
++TARGET_INTERNAL_STATE="${TARGET_CLAUDE}/.state"
++TARGET_SETTINGS="${TARGET_CLAUDE}/settings.json"
++TARGET_GUARDRAILS="${TARGET_CLAUDE}/guardrails.md"
++
++mkdir -p "${TARGET_HOOKS}" "${TARGET_WORKFLOWS}" "${TARGET_STATE}" "${TARGET_INTERNAL_STATE}"
++
++cp -a "${SOURCE_HOOKS}/." "${TARGET_HOOKS}/"
++
++if [[ ! -f "${TARGET_GUARDRAILS}" ]]; then
++  cp "${SOURCE_GUARDRAILS}" "${TARGET_GUARDRAILS}"
++fi
++
++python3 - "${SOURCE_SETTINGS}" "${TARGET_SETTINGS}" <<'PY'
++import json
++import os
++import shutil
++import sys
++
++source_path = sys.argv[1]
++target_path = sys.argv[2]
++
++with open(source_path, "r", encoding="utf-8") as handle:
++    source_data = json.load(handle)
++
++desired_hooks = source_data.get("hooks", {})
++
++target_data = {}
++if os.path.exists(target_path):
++    try:
++        with open(target_path, "r", encoding="utf-8") as handle:
++            target_data = json.load(handle)
++    except Exception:
++        backup_path = f"{target_path}.bak"
++        shutil.copy2(target_path, backup_path)
++        target_data = {}
++
++target_hooks = target_data.get("hooks")
++if not isinstance(target_hooks, dict):
++    target_hooks = {}
++
++for hook_name, desired_entries in desired_hooks.items():
++    if not isinstance(desired_entries, list):
++        continue
++    existing_entries = target_hooks.get(hook_name)
++    if not isinstance(existing_entries, list):
++        existing_entries = []
++    existing_commands = {
++        entry.get("command")
++        for entry in existing_entries
++        if isinstance(entry, dict)
++    }
++    for entry in desired_entries:
++        if not isinstance(entry, dict):
++            continue
++        command = entry.get("command")
++        if not isinstance(command, str) or command in existing_commands:
++            continue
++        existing_entries.append({"command": command})
++        existing_commands.add(command)
++    target_hooks[hook_name] = existing_entries
++
++target_data["hooks"] = target_hooks
++
++os.makedirs(os.path.dirname(target_path), exist_ok=True)
++with open(target_path, "w", encoding="utf-8") as handle:
++    json.dump(target_data, handle, indent=2)
++    handle.write("\n")
++PY
++
++find "${TARGET_HOOKS}" -type f \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} +
++
++echo "Installed Claude Code hooks and settings into ${TARGET_CLAUDE}."
+
+
+thinking
+**Committing changes**
+exec
+/bin/bash -lc 'git commit -m "Add install script for Claude Code setup"' in /home/ralph/ClaudeCoder succeeded in 79ms:
+[main ab4b3e6] Add install script for Claude Code setup
+ 10 files changed, 2014 insertions(+), 6 deletions(-)
+ create mode 100644 .ralph/.tmp/prompt-20260113-222321-527865-12.md
+ create mode 100644 .ralph/.tmp/story-20260113-222321-527865-12.json
+ create mode 100644 .ralph/.tmp/story-20260113-222321-527865-12.md
+ create mode 100644 .ralph/runs/run-20260113-222321-527865-iter-11.md
+ create mode 100644 .ralph/runs/run-20260113-222321-527865-iter-12.log
+ create mode 100755 install.sh
+file update:
+diff --git a/install.sh b/install.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0e2db1eb14faa8e2c8684eb6da3f74671e424e53
+--- /dev/null
++++ b/install.sh
+@@ -0,0 +1,86 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++REPO_ROOT="${SCRIPT_DIR}"
++
++SOURCE_HOOKS="${REPO_ROOT}/.claude/hooks"
++SOURCE_GUARDRAILS="${REPO_ROOT}/.claude/guardrails.md"
++SOURCE_SETTINGS="${REPO_ROOT}/settings.json.example"
++
++TARGET_CLAUDE="${HOME}/.claude"
++TARGET_HOOKS="${TARGET_CLAUDE}/hooks"
++TARGET_WORKFLOWS="${TARGET_HOOKS}/workflows"
++TARGET_STATE="${TARGET_HOOKS}/state"
++TARGET_INTERNAL_STATE="${TARGET_CLAUDE}/.state"
++TARGET_SETTINGS="${TARGET_CLAUDE}/settings.json"
++TARGET_GUARDRAILS="${TARGET_CLAUDE}/guardrails.md"
++
++mkdir -p "${TARGET_HOOKS}" "${TARGET_WORKFLOWS}" "${TARGET_STATE}" "${TARGET_INTERNAL_STATE}"
++
++cp -a "${SOURCE_HOOKS}/." "${TARGET_HOOKS}/"
++
++if [[ ! -f "${TARGET_GUARDRAILS}" ]]; then
++  cp "${SOURCE_GUARDRAILS}" "${TARGET_GUARDRAILS}"
++fi
++
++python3 - "${SOURCE_SETTINGS}" "${TARGET_SETTINGS}" <<'PY'
++import json
++import os
++import shutil
++import sys
++
++source_path = sys.argv[1]
++target_path = sys.argv[2]
++
++with open(source_path, "r", encoding="utf-8") as handle:
++    source_data = json.load(handle)
++
++desired_hooks = source_data.get("hooks", {})
++
++target_data = {}
++if os.path.exists(target_path):
++    try:
++        with open(target_path, "r", encoding="utf-8") as handle:
++            target_data = json.load(handle)
++    except Exception:
++        backup_path = f"{target_path}.bak"
++        shutil.copy2(target_path, backup_path)
++        target_data = {}
++
++target_hooks = target_data.get("hooks")
++if not isinstance(target_hooks, dict):
++    target_hooks = {}
++
++for hook_name, desired_entries in desired_hooks.items():
++    if not isinstance(desired_entries, list):
++        continue
++    existing_entries = target_hooks.get(hook_name)
++    if not isinstance(existing_entries, list):
++        existing_entries = []
++    existing_commands = {
++        entry.get("command")
++        for entry in existing_entries
++        if isinstance(entry, dict)
++    }
++    for entry in desired_entries:
++        if not isinstance(entry, dict):
++            continue
++        command = entry.get("command")
++        if not isinstance(command, str) or command in existing_commands:
++            continue
++        existing_entries.append({"command": command})
++        existing_commands.add(command)
++    target_hooks[hook_name] = existing_entries
++
++target_data["hooks"] = target_hooks
++
++os.makedirs(os.path.dirname(target_path), exist_ok=True)
++with open(target_path, "w", encoding="utf-8") as handle:
++    json.dump(target_data, handle, indent=2)
++    handle.write("\n")
++PY
++
++find "${TARGET_HOOKS}" -type f \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} +
++
++echo "Installed Claude Code hooks and settings into ${TARGET_CLAUDE}."
+
+
+thinking
+**Retrieving commit hash**
+exec
+/bin/bash -lc 'git show -s --format="%h %s" HEAD' in /home/ralph/ClaudeCoder succeeded in 21ms:
+ab4b3e6 Add install script for Claude Code setup
+file update:
+diff --git a/install.sh b/install.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0e2db1eb14faa8e2c8684eb6da3f74671e424e53
+--- /dev/null
++++ b/install.sh
+@@ -0,0 +1,86 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++REPO_ROOT="${SCRIPT_DIR}"
++
++SOURCE_HOOKS="${REPO_ROOT}/.claude/hooks"
++SOURCE_GUARDRAILS="${REPO_ROOT}/.claude/guardrails.md"
++SOURCE_SETTINGS="${REPO_ROOT}/settings.json.example"
++
++TARGET_CLAUDE="${HOME}/.claude"
++TARGET_HOOKS="${TARGET_CLAUDE}/hooks"
++TARGET_WORKFLOWS="${TARGET_HOOKS}/workflows"
++TARGET_STATE="${TARGET_HOOKS}/state"
++TARGET_INTERNAL_STATE="${TARGET_CLAUDE}/.state"
++TARGET_SETTINGS="${TARGET_CLAUDE}/settings.json"
++TARGET_GUARDRAILS="${TARGET_CLAUDE}/guardrails.md"
++
++mkdir -p "${TARGET_HOOKS}" "${TARGET_WORKFLOWS}" "${TARGET_STATE}" "${TARGET_INTERNAL_STATE}"
++
++cp -a "${SOURCE_HOOKS}/." "${TARGET_HOOKS}/"
++
++if [[ ! -f "${TARGET_GUARDRAILS}" ]]; then
++  cp "${SOURCE_GUARDRAILS}" "${TARGET_GUARDRAILS}"
++fi
++
++python3 - "${SOURCE_SETTINGS}" "${TARGET_SETTINGS}" <<'PY'
++import json
++import os
++import shutil
++import sys
++
++source_path = sys.argv[1]
++target_path = sys.argv[2]
++
++with open(source_path, "r", encoding="utf-8") as handle:
++    source_data = json.load(handle)
++
++desired_hooks = source_data.get("hooks", {})
++
++target_data = {}
++if os.path.exists(target_path):
++    try:
++        with open(target_path, "r", encoding="utf-8") as handle:
++            target_data = json.load(handle)
++    except Exception:
++        backup_path = f"{target_path}.bak"
++        shutil.copy2(target_path, backup_path)
++        target_data = {}
++
++target_hooks = target_data.get("hooks")
++if not isinstance(target_hooks, dict):
++    target_hooks = {}
++
++for hook_name, desired_entries in desired_hooks.items():
++    if not isinstance(desired_entries, list):
++        continue
++    existing_entries = target_hooks.get(hook_name)
++    if not isinstance(existing_entries, list):
++        existing_entries = []
++    existing_commands = {
++        entry.get("command")
++        for entry in existing_entries
++        if isinstance(entry, dict)
++    }
++    for entry in desired_entries:
++        if not isinstance(entry, dict):
++            continue
++        command = entry.get("command")
++        if not isinstance(command, str) or command in existing_commands:
++            continue
++        existing_entries.append({"command": command})
++        existing_commands.add(command)
++    target_hooks[hook_name] = existing_entries
++
++target_data["hooks"] = target_hooks
++
++os.makedirs(os.path.dirname(target_path), exist_ok=True)
++with open(target_path, "w", encoding="utf-8") as handle:
++    json.dump(target_data, handle, indent=2)
++    handle.write("\n")
++PY
++
++find "${TARGET_HOOKS}" -type f \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} +
++
++echo "Installed Claude Code hooks and settings into ${TARGET_CLAUDE}."
+
+
+thinking
+**Appending progress to file**
+exec
+/bin/bash -lc 'cat /home/ralph/ClaudeCoder/.ralph/progress.md' in /home/ralph/ClaudeCoder succeeded in 24ms:
+# Progress Log
+Started: Tue Jan 13 22:23:21 CET 2026
+
+## Codebase Patterns
+- (add reusable patterns here)
+
+---
+
+## [2026-01-13 22:26:07 CET] - S01: Directory structure and settings.json template
+Thread: 
+Run: 20260113-222321-527865 (iteration 1)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-1.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-1.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: fd6c7e7 Add base hook directories and settings template
+- Post-commit status: .ralph/runs/run-20260113-222321-527865-iter-1.log (modified)
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL
+  - Command: bash -n hooks/**/*.sh -> FAIL
+file update:
+diff --git a/install.sh b/install.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0e2db1eb14faa8e2c8684eb6da3f74671e424e53
+--- /dev/null
++++ b/install.sh
+@@ -0,0 +1,86 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++REPO_ROOT="${SCRIPT_DIR}"
++
++SOURCE_HOOKS="${REPO_ROOT}/.claude/hooks"
++SOURCE_GUARDRAILS="${REPO_ROOT}/.claude/guardrails.md"
++SOURCE_SETTINGS="${REPO_ROOT}/settings.json.example"
++
++TARGET_CLAUDE="${HOME}/.claude"
++TARGET_HOOKS="${TARGET_CLAUDE}/hooks"
++TARGET_WORKFLOWS="${TARGET_HOOKS}/workflows"
++TARGET_STATE="${TARGET_HOOKS}/state"
++TARGET_INTERNAL_STATE="${TARGET_CLAUDE}/.state"
++TARGET_SETTINGS="${TARGET_CLAUDE}/settings.json"
++TARGET_GUARDRAILS="${TARGET_CLAUDE}/guardrails.md"
++
++mkdir -p "${TARGET_HOOKS}" "${TARGET_WORKFLOWS}" "${TARGET_STATE}" "${TARGET_INTERNAL_STATE}"
++
++cp -a "${SOURCE_HOOKS}/." "${TARGET_HOOKS}/"
++
++if [[ ! -f "${TARGET_GUARDRAILS}" ]]; then
++  cp "${SOURCE_GUARDRAILS}" "${TARGET_GUARDRAILS}"
++fi
++
++python3 - "${SOURCE_SETTINGS}" "${TARGET_SETTINGS}" <<'PY'
++import json
++import os
++import shutil
++import sys
++
++source_path = sys.argv[1]
++target_path = sys.argv[2]
++
++with open(source_path, "r", encoding="utf-8") as handle:
++    source_data = json.load(handle)
++
++desired_hooks = source_data.get("hooks", {})
++
++target_data = {}
++if os.path.exists(target_path):
++    try:
++        with open(target_path, "r", encoding="utf-8") as handle:
++            target_data = json.load(handle)
++    except Exception:
++        backup_path = f"{target_path}.bak"
++        shutil.copy2(target_path, backup_path)
++        target_data = {}
++
++target_hooks = target_data.get("hooks")
++if not isinstance(target_hooks, dict):
++    target_hooks = {}
++
++for hook_name, desired_entries in desired_hooks.items():
++    if not isinstance(desired_entries, list):
++        continue
++    existing_entries = target_hooks.get(hook_name)
++    if not isinstance(existing_entries, list):
++        existing_entries = []
++    existing_commands = {
++        entry.get("command")
++        for entry in existing_entries
++        if isinstance(entry, dict)
++    }
++    for entry in desired_entries:
++        if not isinstance(entry, dict):
++            continue
++        command = entry.get("command")
++        if not isinstance(command, str) or command in existing_commands:
++            continue
++        existing_entries.append({"command": command})
++        existing_commands.add(command)
++    target_hooks[hook_name] = existing_entries
++
++target_data["hooks"] = target_hooks
++
++os.makedirs(os.path.dirname(target_path), exist_ok=True)
++with open(target_path, "w", encoding="utf-8") as handle:
++    json.dump(target_data, handle, indent=2)
++    handle.write("\n")
++PY
++
++find "${TARGET_HOOKS}" -type f \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} +
++
++echo "Installed Claude Code hooks and settings into ${TARGET_CLAUDE}."
+
+
+thinking
+**Preparing to append changelog entry**
+exec
+/bin/bash -lc 'date "+%Y-%m-%d %H:%M:%S %Z"' in /home/ralph/ClaudeCoder succeeded in 17ms:
+2026-01-13 23:17:49 CET
+file update:
+diff --git a/install.sh b/install.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0e2db1eb14faa8e2c8684eb6da3f74671e424e53
+--- /dev/null
++++ b/install.sh
+@@ -0,0 +1,86 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++REPO_ROOT="${SCRIPT_DIR}"
++
++SOURCE_HOOKS="${REPO_ROOT}/.claude/hooks"
++SOURCE_GUARDRAILS="${REPO_ROOT}/.claude/guardrails.md"
++SOURCE_SETTINGS="${REPO_ROOT}/settings.json.example"
++
++TARGET_CLAUDE="${HOME}/.claude"
++TARGET_HOOKS="${TARGET_CLAUDE}/hooks"
++TARGET_WORKFLOWS="${TARGET_HOOKS}/workflows"
++TARGET_STATE="${TARGET_HOOKS}/state"
++TARGET_INTERNAL_STATE="${TARGET_CLAUDE}/.state"
++TARGET_SETTINGS="${TARGET_CLAUDE}/settings.json"
++TARGET_GUARDRAILS="${TARGET_CLAUDE}/guardrails.md"
++
++mkdir -p "${TARGET_HOOKS}" "${TARGET_WORKFLOWS}" "${TARGET_STATE}" "${TARGET_INTERNAL_STATE}"
++
++cp -a "${SOURCE_HOOKS}/." "${TARGET_HOOKS}/"
++
++if [[ ! -f "${TARGET_GUARDRAILS}" ]]; then
++  cp "${SOURCE_GUARDRAILS}" "${TARGET_GUARDRAILS}"
++fi
++
++python3 - "${SOURCE_SETTINGS}" "${TARGET_SETTINGS}" <<'PY'
++import json
++import os
++import shutil
++import sys
++
++source_path = sys.argv[1]
++target_path = sys.argv[2]
++
++with open(source_path, "r", encoding="utf-8") as handle:
++    source_data = json.load(handle)
++
++desired_hooks = source_data.get("hooks", {})
++
++target_data = {}
++if os.path.exists(target_path):
++    try:
++        with open(target_path, "r", encoding="utf-8") as handle:
++            target_data = json.load(handle)
++    except Exception:
++        backup_path = f"{target_path}.bak"
++        shutil.copy2(target_path, backup_path)
++        target_data = {}
++
++target_hooks = target_data.get("hooks")
++if not isinstance(target_hooks, dict):
++    target_hooks = {}
++
++for hook_name, desired_entries in desired_hooks.items():
++    if not isinstance(desired_entries, list):
++        continue
++    existing_entries = target_hooks.get(hook_name)
++    if not isinstance(existing_entries, list):
++        existing_entries = []
++    existing_commands = {
++        entry.get("command")
++        for entry in existing_entries
++        if isinstance(entry, dict)
++    }
++    for entry in desired_entries:
++        if not isinstance(entry, dict):
++            continue
++        command = entry.get("command")
++        if not isinstance(command, str) or command in existing_commands:
++            continue
++        existing_entries.append({"command": command})
++        existing_commands.add(command)
++    target_hooks[hook_name] = existing_entries
++
++target_data["hooks"] = target_hooks
++
++os.makedirs(os.path.dirname(target_path), exist_ok=True)
++with open(target_path, "w", encoding="utf-8") as handle:
++    json.dump(target_data, handle, indent=2)
++    handle.write("\n")
++PY
++
++find "${TARGET_HOOKS}" -type f \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} +
++
++echo "Installed Claude Code hooks and settings into ${TARGET_CLAUDE}."
+
+
+thinking
+**Preparing progress log entry**
+exec
+/bin/bash -lc 'git show --name-only --pretty="" HEAD' in /home/ralph/ClaudeCoder succeeded in 22ms:
+.agents/tasks/prd-claudecoder.json
+.ralph/.tmp/prompt-20260113-222321-527865-12.md
+.ralph/.tmp/story-20260113-222321-527865-12.json
+.ralph/.tmp/story-20260113-222321-527865-12.md
+.ralph/activity.log
+.ralph/errors.log
+.ralph/runs/run-20260113-222321-527865-iter-11.log
+.ralph/runs/run-20260113-222321-527865-iter-11.md
+.ralph/runs/run-20260113-222321-527865-iter-12.log
+install.sh
+file update:
+diff --git a/install.sh b/install.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0e2db1eb14faa8e2c8684eb6da3f74671e424e53
+--- /dev/null
++++ b/install.sh
+@@ -0,0 +1,86 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++REPO_ROOT="${SCRIPT_DIR}"
++
++SOURCE_HOOKS="${REPO_ROOT}/.claude/hooks"
++SOURCE_GUARDRAILS="${REPO_ROOT}/.claude/guardrails.md"
++SOURCE_SETTINGS="${REPO_ROOT}/settings.json.example"
++
++TARGET_CLAUDE="${HOME}/.claude"
++TARGET_HOOKS="${TARGET_CLAUDE}/hooks"
++TARGET_WORKFLOWS="${TARGET_HOOKS}/workflows"
++TARGET_STATE="${TARGET_HOOKS}/state"
++TARGET_INTERNAL_STATE="${TARGET_CLAUDE}/.state"
++TARGET_SETTINGS="${TARGET_CLAUDE}/settings.json"
++TARGET_GUARDRAILS="${TARGET_CLAUDE}/guardrails.md"
++
++mkdir -p "${TARGET_HOOKS}" "${TARGET_WORKFLOWS}" "${TARGET_STATE}" "${TARGET_INTERNAL_STATE}"
++
++cp -a "${SOURCE_HOOKS}/." "${TARGET_HOOKS}/"
++
++if [[ ! -f "${TARGET_GUARDRAILS}" ]]; then
++  cp "${SOURCE_GUARDRAILS}" "${TARGET_GUARDRAILS}"
++fi
++
++python3 - "${SOURCE_SETTINGS}" "${TARGET_SETTINGS}" <<'PY'
++import json
++import os
++import shutil
++import sys
++
++source_path = sys.argv[1]
++target_path = sys.argv[2]
++
++with open(source_path, "r", encoding="utf-8") as handle:
++    source_data = json.load(handle)
++
++desired_hooks = source_data.get("hooks", {})
++
++target_data = {}
++if os.path.exists(target_path):
++    try:
++        with open(target_path, "r", encoding="utf-8") as handle:
++            target_data = json.load(handle)
++    except Exception:
++        backup_path = f"{target_path}.bak"
++        shutil.copy2(target_path, backup_path)
++        target_data = {}
++
++target_hooks = target_data.get("hooks")
++if not isinstance(target_hooks, dict):
++    target_hooks = {}
++
++for hook_name, desired_entries in desired_hooks.items():
++    if not isinstance(desired_entries, list):
++        continue
++    existing_entries = target_hooks.get(hook_name)
++    if not isinstance(existing_entries, list):
++        existing_entries = []
++    existing_commands = {
++        entry.get("command")
++        for entry in existing_entries
++        if isinstance(entry, dict)
++    }
++    for entry in desired_entries:
++        if not isinstance(entry, dict):
++            continue
++        command = entry.get("command")
++        if not isinstance(command, str) or command in existing_commands:
++            continue
++        existing_entries.append({"command": command})
++        existing_commands.add(command)
++    target_hooks[hook_name] = existing_entries
++
++target_data["hooks"] = target_hooks
++
++os.makedirs(os.path.dirname(target_path), exist_ok=True)
++with open(target_path, "w", encoding="utf-8") as handle:
++    json.dump(target_data, handle, indent=2)
++    handle.write("\n")
++PY
++
++find "${TARGET_HOOKS}" -type f \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} +
++
++echo "Installed Claude Code hooks and settings into ${TARGET_CLAUDE}."
+
+
+thinking
+**Documenting progress entry details**
+exec
+/bin/bash -lc "cat <<'EOF' >> /home/ralph/ClaudeCoder/.ralph/progress.md
+## [2026-01-13 23:17:49 CET] - S12: Install script
+Thread: 
+Run: 20260113-222321-527865 (iteration 12)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-12.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-12.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: ab4b3e6 Add install script for Claude Code setup
+- Post-commit status: clean
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL
+  - Command: bash -n hooks/**/*.sh -> FAIL
+  - Command: test -f .claude/guardrails.md -> PASS
+- Files changed:
+  - .agents/tasks/prd-claudecoder.json
+  - .ralph/.tmp/prompt-20260113-222321-527865-12.md
+  - .ralph/.tmp/story-20260113-222321-527865-12.json
+  - .ralph/.tmp/story-20260113-222321-527865-12.md
+  - .ralph/activity.log
+  - .ralph/errors.log
+  - .ralph/runs/run-20260113-222321-527865-iter-11.log
+  - .ralph/runs/run-20260113-222321-527865-iter-11.md
+  - .ralph/runs/run-20260113-222321-527865-iter-12.log
+  - install.sh
+- What was implemented
+  - Added install.sh to create ~/.claude directories, copy hooks, merge settings.json hooks, and seed guardrails.
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered: Global quality gates still target hooks/*.py and hooks/**/*.sh which do not exist in this repo.
+  - Useful context
+---
+EOF" in /home/ralph/ClaudeCoder succeeded in 15ms:
+
+file update:
+diff --git a/install.sh b/install.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0e2db1eb14faa8e2c8684eb6da3f74671e424e53
+--- /dev/null
++++ b/install.sh
+@@ -0,0 +1,86 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++REPO_ROOT="${SCRIPT_DIR}"
++
++SOURCE_HOOKS="${REPO_ROOT}/.claude/hooks"
++SOURCE_GUARDRAILS="${REPO_ROOT}/.claude/guardrails.md"
++SOURCE_SETTINGS="${REPO_ROOT}/settings.json.example"
++
++TARGET_CLAUDE="${HOME}/.claude"
++TARGET_HOOKS="${TARGET_CLAUDE}/hooks"
++TARGET_WORKFLOWS="${TARGET_HOOKS}/workflows"
++TARGET_STATE="${TARGET_HOOKS}/state"
++TARGET_INTERNAL_STATE="${TARGET_CLAUDE}/.state"
++TARGET_SETTINGS="${TARGET_CLAUDE}/settings.json"
++TARGET_GUARDRAILS="${TARGET_CLAUDE}/guardrails.md"
++
++mkdir -p "${TARGET_HOOKS}" "${TARGET_WORKFLOWS}" "${TARGET_STATE}" "${TARGET_INTERNAL_STATE}"
++
++cp -a "${SOURCE_HOOKS}/." "${TARGET_HOOKS}/"
++
++if [[ ! -f "${TARGET_GUARDRAILS}" ]]; then
++  cp "${SOURCE_GUARDRAILS}" "${TARGET_GUARDRAILS}"
++fi
++
++python3 - "${SOURCE_SETTINGS}" "${TARGET_SETTINGS}" <<'PY'
++import json
++import os
++import shutil
++import sys
++
++source_path = sys.argv[1]
++target_path = sys.argv[2]
++
++with open(source_path, "r", encoding="utf-8") as handle:
++    source_data = json.load(handle)
++
++desired_hooks = source_data.get("hooks", {})
++
++target_data = {}
++if os.path.exists(target_path):
++    try:
++        with open(target_path, "r", encoding="utf-8") as handle:
++            target_data = json.load(handle)
++    except Exception:
++        backup_path = f"{target_path}.bak"
++        shutil.copy2(target_path, backup_path)
++        target_data = {}
++
++target_hooks = target_data.get("hooks")
++if not isinstance(target_hooks, dict):
++    target_hooks = {}
++
++for hook_name, desired_entries in desired_hooks.items():
++    if not isinstance(desired_entries, list):
++        continue
++    existing_entries = target_hooks.get(hook_name)
++    if not isinstance(existing_entries, list):
++        existing_entries = []
++    existing_commands = {
++        entry.get("command")
++        for entry in existing_entries
++        if isinstance(entry, dict)
++    }
++    for entry in desired_entries:
++        if not isinstance(entry, dict):
++            continue
++        command = entry.get("command")
++        if not isinstance(command, str) or command in existing_commands:
++            continue
++        existing_entries.append({"command": command})
++        existing_commands.add(command)
++    target_hooks[hook_name] = existing_entries
++
++target_data["hooks"] = target_hooks
++
++os.makedirs(os.path.dirname(target_path), exist_ok=True)
++with open(target_path, "w", encoding="utf-8") as handle:
++    json.dump(target_data, handle, indent=2)
++    handle.write("\n")
++PY
++
++find "${TARGET_HOOKS}" -type f \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} +
++
++echo "Installed Claude Code hooks and settings into ${TARGET_CLAUDE}."
+
+
+thinking
+**Updating activity log with Ralph log**
+exec
+/bin/bash -lc 'ralph log "Updated progress log for S12"' in /home/ralph/ClaudeCoder succeeded in 102ms:
+Using bundled templates: /home/ralph/ralph/.agents/ralph
+file update:
+diff --git a/install.sh b/install.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0e2db1eb14faa8e2c8684eb6da3f74671e424e53
+--- /dev/null
++++ b/install.sh
+@@ -0,0 +1,86 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++REPO_ROOT="${SCRIPT_DIR}"
++
++SOURCE_HOOKS="${REPO_ROOT}/.claude/hooks"
++SOURCE_GUARDRAILS="${REPO_ROOT}/.claude/guardrails.md"
++SOURCE_SETTINGS="${REPO_ROOT}/settings.json.example"
++
++TARGET_CLAUDE="${HOME}/.claude"
++TARGET_HOOKS="${TARGET_CLAUDE}/hooks"
++TARGET_WORKFLOWS="${TARGET_HOOKS}/workflows"
++TARGET_STATE="${TARGET_HOOKS}/state"
++TARGET_INTERNAL_STATE="${TARGET_CLAUDE}/.state"
++TARGET_SETTINGS="${TARGET_CLAUDE}/settings.json"
++TARGET_GUARDRAILS="${TARGET_CLAUDE}/guardrails.md"
++
++mkdir -p "${TARGET_HOOKS}" "${TARGET_WORKFLOWS}" "${TARGET_STATE}" "${TARGET_INTERNAL_STATE}"
++
++cp -a "${SOURCE_HOOKS}/." "${TARGET_HOOKS}/"
++
++if [[ ! -f "${TARGET_GUARDRAILS}" ]]; then
++  cp "${SOURCE_GUARDRAILS}" "${TARGET_GUARDRAILS}"
++fi
++
++python3 - "${SOURCE_SETTINGS}" "${TARGET_SETTINGS}" <<'PY'
++import json
++import os
++import shutil
++import sys
++
++source_path = sys.argv[1]
++target_path = sys.argv[2]
++
++with open(source_path, "r", encoding="utf-8") as handle:
++    source_data = json.load(handle)
++
++desired_hooks = source_data.get("hooks", {})
++
++target_data = {}
++if os.path.exists(target_path):
++    try:
++        with open(target_path, "r", encoding="utf-8") as handle:
++            target_data = json.load(handle)
++    except Exception:
++        backup_path = f"{target_path}.bak"
++        shutil.copy2(target_path, backup_path)
++        target_data = {}
++
++target_hooks = target_data.get("hooks")
++if not isinstance(target_hooks, dict):
++    target_hooks = {}
++
++for hook_name, desired_entries in desired_hooks.items():
++    if not isinstance(desired_entries, list):
++        continue
++    existing_entries = target_hooks.get(hook_name)
++    if not isinstance(existing_entries, list):
++        existing_entries = []
++    existing_commands = {
++        entry.get("command")
++        for entry in existing_entries
++        if isinstance(entry, dict)
++    }
++    for entry in desired_entries:
++        if not isinstance(entry, dict):
++            continue
++        command = entry.get("command")
++        if not isinstance(command, str) or command in existing_commands:
++            continue
++        existing_entries.append({"command": command})
++        existing_commands.add(command)
++    target_hooks[hook_name] = existing_entries
++
++target_data["hooks"] = target_hooks
++
++os.makedirs(os.path.dirname(target_path), exist_ok=True)
++with open(target_path, "w", encoding="utf-8") as handle:
++    json.dump(target_data, handle, indent=2)
++    handle.write("\n")
++PY
++
++find "${TARGET_HOOKS}" -type f \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} +
++
++echo "Installed Claude Code hooks and settings into ${TARGET_CLAUDE}."
+
+
+thinking
+**Preparing to commit changes**
+exec
 /bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder
