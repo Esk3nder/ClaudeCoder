@@ -88,7 +88,7 @@ Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-6.l
 Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-6.md
 - Guardrails reviewed: yes
 - No-commit run: false
-- Commit: c53a4e4 Update run log
+- Commit: 86fcd39 Add lint stop gate script
 - Post-commit status: M .ralph/runs/run-20260113-222321-527865-iter-6.log
 - Verification:
   - Command: python3 -m py_compile hooks/*.py -> FAIL
