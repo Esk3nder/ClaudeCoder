@@ -1,0 +1,234 @@
+{
+  "version": 1,
+  "project": "ClaudeCoder",
+  "overview": "A behavioral configuration system for Claude Code that enforces deterministic agent workflows through lifecycle hooks, quality gates, plan-driven execution, and completion signals. Based on Ralph principles: control context, one goal per loop, low control high oversight.",
+  "goals": [
+    "Enforce quality gates (tests, lint, types, todos) before completion",
+    "Require plan files for non-trivial work",
+    "Inject guardrails (learned failure modes) into every session",
+    "Log all progress to append-only audit trail",
+    "Require explicit completion signal before declaring done",
+    "Support fresh context per iteration (Ralph loop pattern)"
+  ],
+  "nonGoals": [
+    "Auto-committing changes (user controls git)",
+    "Implementing the agents themselves (configuration only)",
+    "Complex multi-agent orchestration (keep it simple)",
+    "Database or cloud state (files only)"
+  ],
+  "successMetrics": [
+    "All Stop gates execute in order and block on failure",
+    "Plan files created for any task with 2+ steps",
+    "Guardrails injected on every UserPromptSubmit",
+    "Progress log appended on every PostToolUse",
+    "Completion blocked without <promise>COMPLETE</promise> signal"
+  ],
+  "openQuestions": [],
+  "stack": {
+    "language": "Python (hooks), Bash (gate scripts), Markdown (plans/guardrails)",
+    "runtime": "Claude Code CLI hooks system",
+    "config": "JSON (settings.json, session-context.json)",
+    "state": "Files in .claude/ and plans/ directories"
+  },
+  "qualityGates": [
+    "python3 -m py_compile hooks/*.py",
+    "bash -n hooks/**/*.sh",
+    "test -f .claude/guardrails.md"
+  ],
+  "stories": [
+    {
+      "id": "S01",
+      "title": "Directory structure and settings.json template",
+      "description": "Create the base directory structure (.claude/hooks/, .claude/hooks/state/, .claude/hooks/workflows/, plans/) and settings.json.example with all hook wiring.",
+      "acceptanceCriteria": [
+        "All directories exist",
+        "settings.json.example contains UserPromptSubmit, PreToolUse, PostToolUse, Stop hooks",
+        "Hook paths point to correct locations"
+      ],
+      "status": "in_progress",
+      "dependsOn": [],
+      "startedAt": "2026-01-13T21:23:21.647916+00:00",
+      "completedAt": null,
+      "updatedAt": "2026-01-13T21:23:21.647950+00:00"
+    },
+    {
+      "id": "S02",
+      "title": "UserPromptSubmit hook (keyword-detector)",
+      "description": "Create keyword-detector.py that reads prompt from stdin JSON, detects mode/intent, writes session-context.json, injects guardrails.md content into additionalContext.",
+      "acceptanceCriteria": [
+        "Reads JSON stdin with prompt field",
+        "Writes session flags to ~/.claude/hooks/state/session-context.json",
+        "Reads and injects .claude/guardrails.md into additionalContext",
+        "Outputs valid hook JSON with hookEventName=UserPromptSubmit",
+        "Exits 0 on JSON parse errors (fail-safe)"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S01"
+      ]
+    },
+    {
+      "id": "S03",
+      "title": "PreToolUse hook (parallel-dispatch-guide)",
+      "description": "Create parallel-dispatch-guide.py that provides advisory guidance on Read/Grep/Glob/Bash tools. Always allows, never blocks.",
+      "acceptanceCriteria": [
+        "Matches Read|Grep|Glob|Bash tools",
+        "Reads session-context.json for context flags",
+        "Outputs permissionDecision=allow with advisory permissionDecisionReason",
+        "Exits 0 on errors (fail-safe)"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S02"
+      ]
+    },
+    {
+      "id": "S04",
+      "title": "PostToolUse hook (progress-logger)",
+      "description": "Create progress-logger.py that appends to .claude/progress.log after Write/Edit tools. Format: [ISO-timestamp] tool_name: summary.",
+      "acceptanceCriteria": [
+        "Matches Write|Edit tools",
+        "Appends one line per tool use to .claude/progress.log",
+        "Never overwrites, only appends",
+        "Extracts file path from tool_input",
+        "Exits 0 on errors (fail-safe)"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S01"
+      ]
+    },
+    {
+      "id": "S05",
+      "title": "Stop gate: require-green-tests.sh",
+      "description": "Create require-green-tests.sh that auto-detects test command, runs tests, blocks on failure. Supports WORKFLOWS_SKIP_TESTS override.",
+      "acceptanceCriteria": [
+        "Auto-detects npm test, pytest, cargo test, go test",
+        "Skips if WORKFLOWS_SKIP_TESTS=true",
+        "Skips if no test infrastructure detected",
+        "Blocks (exit non-zero) on test failure",
+        "Caches green results in .claude/.state/last_tests.env"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S01"
+      ]
+    },
+    {
+      "id": "S06",
+      "title": "Stop gate: require-clean-lint.sh",
+      "description": "Create require-clean-lint.sh that auto-detects lint command, runs lint, blocks on failure. Supports WORKFLOWS_SKIP_LINT override.",
+      "acceptanceCriteria": [
+        "Auto-detects npm run lint, ruff, eslint, cargo clippy",
+        "Skips if WORKFLOWS_SKIP_LINT=true",
+        "Skips if no lint infrastructure detected",
+        "Blocks (exit non-zero) on lint failure"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S01"
+      ]
+    },
+    {
+      "id": "S07",
+      "title": "Stop gate: require-clean-types.sh",
+      "description": "Create require-clean-types.sh that auto-detects type check command, runs it, blocks on failure. Supports WORKFLOWS_SKIP_TYPES override.",
+      "acceptanceCriteria": [
+        "Auto-detects tsc --noEmit, pyright, mypy",
+        "Skips if WORKFLOWS_SKIP_TYPES=true",
+        "Skips if no type infrastructure detected",
+        "Blocks (exit non-zero) on type errors"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S01"
+      ]
+    },
+    {
+      "id": "S08",
+      "title": "Stop gate: todo-enforcer.sh",
+      "description": "Create todo-enforcer.sh that checks TodoWrite transcript for pending/in_progress items and blocks completion if found.",
+      "acceptanceCriteria": [
+        "Reads transcript_path from stdin JSON",
+        "Parses transcript for TodoWrite tool uses",
+        "Blocks if any todos have status pending or in_progress",
+        "Outputs JSON {decision: block/allow, reason: ...}",
+        "Safety valve: allow after 10 consecutive blocks"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S01"
+      ]
+    },
+    {
+      "id": "S09",
+      "title": "Stop gate: completion-signal.sh",
+      "description": "Create completion-signal.sh that checks transcript for <promise>COMPLETE</promise> signal and blocks if not found.",
+      "acceptanceCriteria": [
+        "Reads transcript_path from stdin JSON",
+        "Searches for <promise>COMPLETE</promise> in agent output",
+        "Blocks if signal not found",
+        "Outputs JSON {decision: block/allow, reason: ...}"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S01"
+      ]
+    },
+    {
+      "id": "S10",
+      "title": "Guardrails template and injection",
+      "description": "Create .claude/guardrails.md template with example Signs. Ensure keyword-detector injects this content.",
+      "acceptanceCriteria": [
+        "Template includes 3 example Signs (Import Cycle, Broken Tests, Unread Edits)",
+        "Each Sign has Trigger, Instruction, Added fields",
+        "keyword-detector reads and injects full content"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S02"
+      ]
+    },
+    {
+      "id": "S11",
+      "title": "Plan file template and CLAUDE.md guidance",
+      "description": "Create plans/ directory, plan template, and CLAUDE.md instructions for plan-driven execution.",
+      "acceptanceCriteria": [
+        "plans/ directory exists",
+        "Plan template documents Goal/Tasks/Notes format",
+        "CLAUDE.md includes classification rules (trivial vs open-ended)",
+        "CLAUDE.md includes iteration loop instructions"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S01"
+      ]
+    },
+    {
+      "id": "S12",
+      "title": "Install script",
+      "description": "Create install.sh that copies hooks, creates directories, merges settings.json, and sets up guardrails.md.",
+      "acceptanceCriteria": [
+        "Creates all required directories",
+        "Copies hook scripts to ~/.claude/hooks/",
+        "Merges hook wiring into ~/.claude/settings.json",
+        "Creates .claude/guardrails.md if not exists",
+        "Makes all scripts executable"
+      ],
+      "status": "open",
+      "dependsOn": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11"
+      ]
+    }
+  ]
+}

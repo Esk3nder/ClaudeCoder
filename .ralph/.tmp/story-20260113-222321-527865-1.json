@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "total": 12,
+  "remaining": 12,
+  "quality_gates": [
+    "python3 -m py_compile hooks/*.py",
+    "bash -n hooks/**/*.sh",
+    "test -f .claude/guardrails.md"
+  ],
+  "id": "S01",
+  "title": "Directory structure and settings.json template"
+}
