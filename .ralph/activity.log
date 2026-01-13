@@ -1,6 +1,7 @@
 # Activity Log
 
 ## Run Summary
+- 2026-01-13 23:14:12 | run=20260113-222321-527865 | iter=11 | mode=build | story=S11 | duration=283s | status=success
 - 2026-01-13 23:09:26 | run=20260113-222321-527865 | iter=10 | mode=build | story=S10 | duration=103s | status=success
 - 2026-01-13 23:07:40 | run=20260113-222321-527865 | iter=9 | mode=build | story=S09 | duration=346s | status=success
 - 2026-01-13 23:01:52 | run=20260113-222321-527865 | iter=8 | mode=build | story=S08 | duration=413s | status=success
@@ -81,3 +82,9 @@
 [2026-01-13 23:10:38] Add plan template and CLAUDE guidance
 [2026-01-13 23:10:46] Ran global quality gates
 [2026-01-13 23:12:44] Updated progress log for S11
+[2026-01-13 23:14:12] ITERATION 11 end (duration=283s)
+[2026-01-13 23:14:15] ITERATION 12 start (mode=build story=S12)
+[2026-01-13 23:14:54] Start S12 install script work
+[2026-01-13 23:15:44] Added install.sh to set up hooks, settings, and guardrails
+[2026-01-13 23:16:25] Ran global quality gate commands (python3 -m py_compile hooks/*.py, bash -n hooks/**/*.sh, test -f .claude/guardrails.md)
+[2026-01-13 23:16:36] Start S12 install script work (retry after missing local helper)
