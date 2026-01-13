@@ -2,10 +2,6 @@
 
 A behavioral specification for coding agents. Focus on **what** and **when**, not implementation details.
 
-```bash
-git clone https://github.com/Esk3nder/ClaudeCoder.git && cd ClaudeCoder && ./install.sh
-```
-
 ---
 
 ## Philosophy (Ralph Principles)
@@ -15,6 +11,85 @@ git clone https://github.com/Esk3nder/ClaudeCoder.git && cd ClaudeCoder && ./ins
 3. **One goal per loop**: Fresh context per iteration. Compaction is lossy—avoid it.
 4. **Low control, high oversight**: Let the agent decide, but watch and steer.
 5. **Completion signals**: Agent explicitly declares done. Quality gates verify it's true.
+
+---
+
+## Quick Start
+
+### Install (one-time)
+
+```bash
+git clone https://github.com/Esk3nder/ClaudeCoder.git
+cd ClaudeCoder
+./install.sh
+```
+
+Hooks install to `~/.claude/hooks/`, settings merge into `~/.claude/settings.json`.
+
+### Restart Claude Code
+
+The hooks activate on next session. No config needed.
+
+### Test the hooks
+
+```bash
+# Intent detection (should return JSON with guardrails)
+echo '{"prompt": "fix the auth bug"}' | python3 ~/.claude/hooks/keyword-detector.py
+
+# Completion gate (should block - no transcript)
+echo '{}' | bash ~/.claude/hooks/workflows/completion-signal.sh
+
+# Check detected intent
+cat ~/.claude/hooks/state/session-context.json
+```
+
+### Add a guardrail
+
+When you hit a failure pattern, add it to `~/.claude/guardrails.md`:
+
+```markdown
+## Sign: Forgot to run tests
+- Trigger: Completing a task without verification
+- Instruction: Always run tests before claiming done
+- Added: 2026-01-13
+```
+
+This gets injected into every prompt automatically.
+
+### Create a plan (for non-trivial work)
+
+```bash
+cat > plans/$(date +%Y%m%d)-my-feature.md << 'EOF'
+# Goal
+Add user authentication to the API
+
+## Tasks
+- [ ] Create auth middleware
+- [ ] Add login endpoint
+- [ ] Add session management
+- [ ] Write tests
+
+## Notes
+Using JWT tokens, 24h expiry
+EOF
+```
+
+The agent reads the plan, marks tasks `[-]` in progress, executes, marks `[x]` done.
+
+### Skip quality gates (if needed)
+
+```bash
+export WORKFLOWS_SKIP_TESTS=true
+export WORKFLOWS_SKIP_LINT=true
+export WORKFLOWS_SKIP_TYPES=true
+```
+
+### Uninstall
+
+```bash
+rm -rf ~/.claude/hooks ~/.claude/guardrails.md ~/.claude/progress.log
+# Edit ~/.claude/settings.json to remove "hooks" key
+```
 
 ---
 
@@ -166,26 +241,3 @@ Never leave code broken.
 └── progress.log                      # Append-only audit
 ```
 
----
-
-## Verify Installation
-
-```bash
-# Test intent detection
-echo '{"prompt": "debug auth bug"}' | python3 ~/.claude/hooks/keyword-detector.py
-
-# Test completion gate (should block)
-echo '{}' | bash ~/.claude/hooks/workflows/completion-signal.sh
-
-# Check session context
-cat ~/.claude/hooks/state/session-context.json
-```
-
----
-
-## Uninstall
-
-```bash
-rm -rf ~/.claude/hooks ~/.claude/guardrails.md ~/.claude/progress.log
-# Then remove "hooks" key from ~/.claude/settings.json
-```
