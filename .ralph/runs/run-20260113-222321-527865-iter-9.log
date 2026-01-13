@@ -2511,4 +2511,1300 @@ index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc739
 thinking
 **Resolving untracked and modified files**
 exec
+/bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder succeeded in 25ms:
+
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Preparing to commit changes**
+exec
+/bin/bash -lc 'git commit -m "Add completion signal stop gate"' in /home/ralph/ClaudeCoder succeeded in 37ms:
+[main dad754d] Add completion signal stop gate
+ 10 files changed, 3733 insertions(+), 6 deletions(-)
+ create mode 100755 .claude/hooks/workflows/completion-signal.sh
+ create mode 100644 .ralph/.tmp/prompt-20260113-222321-527865-9.md
+ create mode 100644 .ralph/.tmp/story-20260113-222321-527865-9.json
+ create mode 100644 .ralph/.tmp/story-20260113-222321-527865-9.md
+ create mode 100644 .ralph/runs/run-20260113-222321-527865-iter-8.md
+ create mode 100644 .ralph/runs/run-20260113-222321-527865-iter-9.log
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Verifying commit and workspace status**
+exec
+/bin/bash -lc 'git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 18ms:
+ M .ralph/runs/run-20260113-222321-527865-iter-9.log
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Discussing commit and logging sequence**
+exec
+/bin/bash -lc 'git show -s --format="%h %s" HEAD' in /home/ralph/ClaudeCoder succeeded in 20ms:
+dad754d Add completion signal stop gate
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Checking progress file format**
+exec
+/bin/bash -lc 'tail -n 20 /home/ralph/ClaudeCoder/.ralph/progress.md' in /home/ralph/ClaudeCoder succeeded in 26ms:
+  - Command: test -f .claude/guardrails.md -> PASS
+- Files changed:
+  - .agents/tasks/prd-claudecoder.json
+  - .claude/hooks/workflows/todo-enforcer.sh
+  - .ralph/.tmp/prompt-20260113-222321-527865-8.md
+  - .ralph/.tmp/story-20260113-222321-527865-8.json
+  - .ralph/.tmp/story-20260113-222321-527865-8.md
+  - .ralph/activity.log
+  - .ralph/errors.log
+  - .ralph/progress.md
+  - .ralph/runs/run-20260113-222321-527865-iter-7.log
+  - .ralph/runs/run-20260113-222321-527865-iter-7.md
+  - .ralph/runs/run-20260113-222321-527865-iter-8.log
+- What was implemented
+  - Added todo-enforcer stop gate to parse TodoWrite statuses, enforce pending/in-progress blocking, and apply a 10-block safety valve.
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered
+  - Useful context
+---
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Drafting progress log entry details**
+
+I'm figuring out how to append a detailed progress entry after the final commit, including verification command results, file changes, and statuses. Balancing timing is tricky since the entry references the commit hash before committing the progress log itself, so I’m planning to ensure the entry truthfully indicates a clean state eventually while recording all relevant changed files and notes. I'll gather timestamps, command outcomes, and structured notes to create a clear and comprehensive log append.
+exec
+/bin/bash -lc 'date "+%Y-%m-%d %H:%M:%S"' in /home/ralph/ClaudeCoder succeeded in 17ms:
+2026-01-13 23:05:26
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Appending new entry**
+exec
+/bin/bash -lc "cat <<'EOF' >> /home/ralph/ClaudeCoder/.ralph/progress.md
+## [2026-01-13 23:05:26] - S09: Stop gate: completion-signal.sh
+Thread: 
+Run: 20260113-222321-527865 (iteration 9)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-9.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-9.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: dad754d Add completion signal stop gate
+- Post-commit status: clean
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL (no hooks/*.py)
+  - Command: bash -n hooks/**/*.sh -> FAIL (no hooks/**/*.sh)
+  - Command: test -f .claude/guardrails.md -> PASS
+- Files changed:
+  - .agents/tasks/prd-claudecoder.json
+  - .claude/hooks/workflows/completion-signal.sh
+  - .ralph/.tmp/prompt-20260113-222321-527865-9.md
+  - .ralph/.tmp/story-20260113-222321-527865-9.json
+  - .ralph/.tmp/story-20260113-222321-527865-9.md
+  - .ralph/activity.log
+  - .ralph/errors.log
+  - .ralph/progress.md
+  - .ralph/runs/run-20260113-222321-527865-iter-8.log
+  - .ralph/runs/run-20260113-222321-527865-iter-8.md
+  - .ralph/runs/run-20260113-222321-527865-iter-9.log
+- What was implemented
+  - Added completion-signal stop gate to scan transcripts for <promise>COMPLETE</promise> and block when missing.
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered
+  - Useful context
+---
+EOF" in /home/ralph/ClaudeCoder succeeded in 16ms:
+
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Adding logging after progress update**
+exec
+/bin/bash -lc 'ralph log "Appended S09 progress entry"' in /home/ralph/ClaudeCoder succeeded in 69ms:
+Using bundled templates: /home/ralph/ralph/.agents/ralph
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Preparing to commit changes**
+exec
+/bin/bash -lc 'git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 19ms:
+ M .ralph/activity.log
+ M .ralph/progress.md
+ M .ralph/runs/run-20260113-222321-527865-iter-9.log
+file update:
+diff --git a/.claude/hooks/workflows/completion-signal.sh b/.claude/hooks/workflows/completion-signal.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..0c48ca4f74fb36de4711a336129bc73928a977bc
+--- /dev/null
++++ b/.claude/hooks/workflows/completion-signal.sh
+@@ -0,0 +1,123 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++payload="$(cat)"
++transcript_path="$(
++  python3 - <<'PY' <<<"${payload}"
++import json
++import sys
++
++raw = sys.stdin.read()
++if not raw.strip():
++    sys.exit(0)
++try:
++    data = json.loads(raw)
++except json.JSONDecodeError:
++    sys.exit(0)
++
++path = data.get("transcript_path") or data.get("transcriptPath") or ""
++if isinstance(path, str):
++    sys.stdout.write(path)
++PY
++)"
++
++decision="block"
++reason="completion-signal: missing <promise>COMPLETE</promise>"
++
++if [[ -z "${transcript_path}" || ! -f "${transcript_path}" ]]; then
++  decision="block"
++  reason="completion-signal: no transcript available"
++else
++  found="$(
++    python3 - "${transcript_path}" <<'PY'
++import json
++import os
++import sys
++
++SIGNAL = "<promise>COMPLETE</promise>"
++path = sys.argv[1]
++
++def has_signal(text):
++    return isinstance(text, str) and SIGNAL in text
++
++def is_assistant(role):
++    if not isinstance(role, str):
++        return False
++    role = role.lower()
++    return role in ("assistant", "agent", "model")
++
++def inspect_obj(obj, role_context=None):
++    if isinstance(obj, dict):
++        local_role = role_context
++        for key in ("role", "type", "speaker", "author", "sender"):
++            value = obj.get(key)
++            if isinstance(value, str):
++                local_role = value
++                break
++        if is_assistant(local_role):
++            for value in obj.values():
++                if isinstance(value, str) and has_signal(value):
++                    return True
++        for value in obj.values():
++            if inspect_obj(value, local_role):
++                return True
++    elif isinstance(obj, list):
++        for item in obj:
++            if inspect_obj(item, role_context):
++                return True
++    elif isinstance(obj, str):
++        if is_assistant(role_context) and has_signal(obj):
++            return True
++    return False
++
++def parse_json_blob(text):
++    try:
++        data = json.loads(text)
++    except Exception:
++        return False
++    return inspect_obj(data)
++
++if not os.path.exists(path):
++    print("no")
++    sys.exit(0)
++
++with open(path, "r", encoding="utf-8") as handle:
++    content = handle.read()
++
++found = parse_json_blob(content)
++if not found:
++    for line in content.splitlines():
++        line = line.strip()
++        if not line:
++            continue
++        try:
++            data = json.loads(line)
++        except Exception:
++            continue
++        if inspect_obj(data):
++            found = True
++            break
++
++if not found and SIGNAL in content:
++    found = True
++
++print("yes" if found else "no")
++PY
++  )"
++  if [[ "${found}" == "yes" ]]; then
++    decision="allow"
++    reason="completion-signal: found <promise>COMPLETE</promise>"
++  else
++    decision="block"
++    reason="completion-signal: missing <promise>COMPLETE</promise>"
++  fi
++fi
++
++python3 - <<'PY' "${decision}" "${reason}"
++import json
++import sys
++
++decision = sys.argv[1]
++reason = sys.argv[2]
++print(json.dumps({"decision": decision, "reason": reason}))
++PY
+
+
+thinking
+**Staging and committing changes**
+exec
 /bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder

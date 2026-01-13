@@ -169,3 +169,35 @@ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter
   - Gotchas encountered
   - Useful context
 ---
+## [2026-01-13 23:05:26] - S09: Stop gate: completion-signal.sh
+Thread: 
+Run: 20260113-222321-527865 (iteration 9)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-9.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-9.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: dad754d Add completion signal stop gate
+- Post-commit status: clean
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL (no hooks/*.py)
+  - Command: bash -n hooks/**/*.sh -> FAIL (no hooks/**/*.sh)
+  - Command: test -f .claude/guardrails.md -> PASS
+- Files changed:
+  - .agents/tasks/prd-claudecoder.json
+  - .claude/hooks/workflows/completion-signal.sh
+  - .ralph/.tmp/prompt-20260113-222321-527865-9.md
+  - .ralph/.tmp/story-20260113-222321-527865-9.json
+  - .ralph/.tmp/story-20260113-222321-527865-9.md
+  - .ralph/activity.log
+  - .ralph/errors.log
+  - .ralph/progress.md
+  - .ralph/runs/run-20260113-222321-527865-iter-8.log
+  - .ralph/runs/run-20260113-222321-527865-iter-8.md
+  - .ralph/runs/run-20260113-222321-527865-iter-9.log
+- What was implemented
+  - Added completion-signal stop gate to scan transcripts for <promise>COMPLETE</promise> and block when missing.
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered
+  - Useful context
+---
