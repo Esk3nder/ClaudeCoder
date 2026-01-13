@@ -3,11 +3,11 @@ set -euo pipefail
 
 payload="$(cat)"
 transcript_path="$(
-  python3 - <<'PY' <<<"${payload}"
+  python3 -c '
 import json
 import sys
 
-raw = sys.stdin.read()
+raw = sys.argv[1] if len(sys.argv) > 1 else ""
 if not raw.strip():
     sys.exit(0)
 try:
@@ -18,7 +18,7 @@ except json.JSONDecodeError:
 path = data.get("transcript_path") or data.get("transcriptPath") or ""
 if isinstance(path, str):
     sys.stdout.write(path)
-PY
+' "${payload}"
 )"
 
 decision="block"
