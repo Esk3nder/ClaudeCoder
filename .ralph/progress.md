@@ -75,11 +75,11 @@ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter
   - .ralph/runs/run-20260113-222321-527865-iter-2.log
   - .ralph/runs/run-20260113-222321-527865-iter-2.md
   - .ralph/runs/run-20260113-222321-527865-iter-3.log
-- What was implemented
+- What was implemented: Added require-clean-lint.sh stop gate with npm/ruff/eslint/cargo detection and skip/exit handling.
 - **Learnings for future iterations:**
-  - Patterns discovered
-  - Gotchas encountered
-  - Useful context
+  - Patterns discovered: Lint detection can rely on config presence to avoid false positives.
+  - Gotchas encountered: Run log updates after commands keep the tree dirty.
+  - Useful context: Global quality gates currently point at non-existent hooks/ paths.
 ---
 ## [2026-01-13 22:47:58] - S06: Stop gate: require-clean-lint.sh
 Thread: 
