@@ -45,11 +45,11 @@
         "settings.json.example contains UserPromptSubmit, PreToolUse, PostToolUse, Stop hooks",
         "Hook paths point to correct locations"
       ],
-      "status": "in_progress",
+      "status": "done",
       "dependsOn": [],
       "startedAt": "2026-01-13T21:23:21.647916+00:00",
-      "completedAt": null,
-      "updatedAt": "2026-01-13T21:23:21.647950+00:00"
+      "completedAt": "2026-01-13T21:28:52.579456+00:00",
+      "updatedAt": "2026-01-13T21:28:52.579404+00:00"
     },
     {
       "id": "S02",
@@ -62,10 +62,13 @@
         "Outputs valid hook JSON with hookEventName=UserPromptSubmit",
         "Exits 0 on JSON parse errors (fail-safe)"
       ],
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "S01"
-      ]
+      ],
+      "startedAt": "2026-01-13T21:28:54.716424+00:00",
+      "completedAt": "2026-01-13T21:32:15.099307+00:00",
+      "updatedAt": "2026-01-13T21:32:15.099272+00:00"
     },
     {
       "id": "S03",
@@ -77,10 +80,13 @@
         "Outputs permissionDecision=allow with advisory permissionDecisionReason",
         "Exits 0 on errors (fail-safe)"
       ],
-      "status": "open",
+      "status": "in_progress",
       "dependsOn": [
         "S02"
-      ]
+      ],
+      "startedAt": "2026-01-13T21:32:17.216373+00:00",
+      "completedAt": null,
+      "updatedAt": "2026-01-13T21:32:17.216400+00:00"
     },
     {
       "id": "S04",

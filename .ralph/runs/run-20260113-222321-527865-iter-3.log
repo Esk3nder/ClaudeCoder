@@ -1,0 +1,1309 @@
+OpenAI Codex v0.80.0 (research preview)
+--------
+workdir: /home/ralph/ClaudeCoder
+model: gpt-5.2-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: none
+reasoning summaries: auto
+session id: 019bb946-195e-7310-9c28-880ee087ae42
+--------
+user
+# Build
+
+You are an autonomous coding agent. Your task is to complete the work for exactly one story and record the outcome.
+
+## Paths
+- PRD: /home/ralph/ClaudeCoder/.agents/tasks/prd-claudecoder.json
+- AGENTS (optional): /home/ralph/ClaudeCoder/AGENTS.md
+- Progress Log: /home/ralph/ClaudeCoder/.ralph/progress.md
+- Guardrails: /home/ralph/ClaudeCoder/.ralph/guardrails.md
+- Guardrails Reference: /home/ralph/ralph/.agents/ralph/references/GUARDRAILS.md
+- Context Reference: /home/ralph/ralph/.agents/ralph/references/CONTEXT_ENGINEERING.md
+- Errors Log: /home/ralph/ClaudeCoder/.ralph/errors.log
+- Activity Log: /home/ralph/ClaudeCoder/.ralph/activity.log
+- Activity Logger: /home/ralph/ClaudeCoder/ralph log
+- No-commit: false
+- Repo Root: /home/ralph/ClaudeCoder
+- Run ID: 20260113-222321-527865
+- Iteration: 3
+- Run Log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-3.log
+- Run Summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-3.md
+
+## Global Quality Gates (apply to every story)
+- python3 -m py_compile hooks/*.py
+- bash -n hooks/**/*.sh
+- test -f .claude/guardrails.md
+
+## Selected Story (Do not change scope)
+ID: S03
+Title: PreToolUse hook (parallel-dispatch-guide)
+
+Story details:
+### S03: PreToolUse hook (parallel-dispatch-guide)
+Status: in_progress
+Depends on: S02
+
+Description:
+Create parallel-dispatch-guide.py that provides advisory guidance on Read/Grep/Glob/Bash tools. Always allows, never blocks.
+
+Acceptance Criteria:
+- [ ] Matches Read|Grep|Glob|Bash tools
+- [ ] Reads session-context.json for context flags
+- [ ] Outputs permissionDecision=allow with advisory permissionDecisionReason
+- [ ] Exits 0 on errors (fail-safe)
+
+
+If the story details are empty or missing, STOP and report that the PRD story format could not be parsed.
+
+## Rules (Non-Negotiable)
+- Implement **only** the work required to complete the selected story.
+- Complete all tasks associated with this story (and only this story).
+- Do NOT ask the user questions.
+- Do NOT change unrelated code.
+- Do NOT assume something is unimplemented — confirm by reading code.
+- Implement completely; no placeholders or stubs.
+- If No-commit is true, do NOT commit or push changes.
+- Do NOT edit the PRD JSON (status is handled by the loop).
+- All changes made during the run must be committed (including updates to progress/logs).
+ - Before committing, perform a final **security**, **performance**, and **regression** review of your changes.
+
+## Your Task (Do this in order)
+1. Read /home/ralph/ClaudeCoder/.ralph/guardrails.md before any code changes.
+2. Read /home/ralph/ClaudeCoder/.ralph/errors.log for repeated failures to avoid.
+3. Read /home/ralph/ClaudeCoder/.agents/tasks/prd-claudecoder.json for global context (do not edit).
+4. Fully audit and read all necessary files to understand the task end-to-end before implementing. Do not assume missing functionality.
+5. If /home/ralph/ClaudeCoder/AGENTS.md exists, follow its build/test instructions.
+6. Implement only the tasks that belong to S03.
+7. Run verification commands listed in the story, the global quality gates, and in /home/ralph/ClaudeCoder/AGENTS.md (if required).
+8. If the project has a build or dev workflow, run what applies:
+   - Build step (e.g., `npm run build`) if defined.
+   - Dev server (e.g., `npm run dev`, `wrangler dev`) if it is the normal validation path.
+   - Confirm no runtime/build errors in the console.
+9. Perform a brief audit before committing:
+   - **Security:** check for obvious vulnerabilities or unsafe handling introduced by your changes.
+   - **Performance:** check for avoidable regressions (extra queries, heavy loops, unnecessary re-renders).
+   - **Regression:** verify existing behavior that could be impacted still works.
+10. If No-commit is false, commit changes using the `$commit` skill.
+    - Stage everything: `git add -A`
+    - Confirm a clean working tree after commit: `git status --porcelain` should be empty.
+    - After committing, capture the commit hash and subject using:
+      `git show -s --format="%h %s" HEAD`.
+11. Append a progress entry to /home/ralph/ClaudeCoder/.ralph/progress.md with run/commit/test details (format below).
+    If No-commit is true, skip committing and note it in the progress entry.
+
+## Progress Entry Format (Append Only)
+```
+## [Date/Time] - S03: PreToolUse hook (parallel-dispatch-guide)
+Thread: [codex exec session id if available, otherwise leave blank]
+Run: 20260113-222321-527865 (iteration 3)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-3.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-3.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: <hash> <subject> (or `none` + reason)
+- Post-commit status: `clean` or list remaining files
+- Verification:
+  - Command: <exact command> -> PASS/FAIL
+  - Command: <exact command> -> PASS/FAIL
+- Files changed:
+  - <file path>
+  - <file path>
+- What was implemented
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered
+  - Useful context
+---
+```
+
+## Completion Signal
+Only output the completion signal when the **selected story** is fully complete and verified.
+When the selected story is complete, output:
+<promise>COMPLETE</promise>
+
+Otherwise, end normally without the signal.
+
+## Additional Guardrails
+- When authoring documentation, capture the why (tests + implementation intent).
+- If you learn how to run/build/test the project, update /home/ralph/ClaudeCoder/AGENTS.md briefly (operational only).
+- Keep AGENTS operational only; progress notes belong in /home/ralph/ClaudeCoder/.ralph/progress.md.
+- If you hit repeated errors, log them in /home/ralph/ClaudeCoder/.ralph/errors.log and add a Sign to /home/ralph/ClaudeCoder/.ralph/guardrails.md using /home/ralph/ralph/.agents/ralph/references/GUARDRAILS.md as the template.
+
+## Activity Logging (Required)
+Log major actions to /home/ralph/ClaudeCoder/.ralph/activity.log using the helper:
+```
+/home/ralph/ClaudeCoder/ralph log "message"
+```
+Log at least:
+- Start of work on the story
+- After major code changes
+- After tests/verification
+- After updating progress log
+
+## Browser Testing (Required for Frontend Stories)
+If the selected story changes UI, you MUST verify it in the browser:
+1. Load the `dev-browser` skill.
+2. Navigate to the relevant page.
+3. Verify the UI changes work as expected.
+4. Take a screenshot if helpful for the progress log.
+
+A frontend story is NOT complete until browser verification passes.
+
+mcp startup: no servers
+
+thinking
+**Preparing to follow instructions**
+exec
+/bin/bash -lc 'cat /home/ralph/ClaudeCoder/.ralph/guardrails.md' in /home/ralph/ClaudeCoder succeeded in 18ms:
+# Guardrails (Signs)
+
+> Lessons learned from failures. Read before acting.
+
+## Core Signs
+
+### Sign: Read Before Writing
+- **Trigger**: Before modifying any file
+- **Instruction**: Read the file first
+- **Added after**: Core principle
+
+### Sign: Test Before Commit
+- **Trigger**: Before committing changes
+- **Instruction**: Run required tests and verify outputs
+- **Added after**: Core principle
+
+---
+
+## Learned Signs
+
+exec
+/bin/bash -lc 'cat /home/ralph/ClaudeCoder/.ralph/errors.log' in /home/ralph/ClaudeCoder succeeded in 25ms:
+# Error Log
+
+> Failures and repeated issues. Use this to add guardrails.
+
+[2026-01-13 22:28:52] ITERATION 1 left uncommitted changes; review run summary at /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-1.md
+[2026-01-13 22:32:14] ITERATION 2 left uncommitted changes; review run summary at /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-2.md
+exec
+/bin/bash -lc 'cat /home/ralph/ClaudeCoder/.agents/tasks/prd-claudecoder.json' in /home/ralph/ClaudeCoder succeeded in 19ms:
+{
+  "version": 1,
+  "project": "ClaudeCoder",
+  "overview": "A behavioral configuration system for Claude Code that enforces deterministic agent workflows through lifecycle hooks, quality gates, plan-driven execution, and completion signals. Based on Ralph principles: control context, one goal per loop, low control high oversight.",
+  "goals": [
+    "Enforce quality gates (tests, lint, types, todos) before completion",
+    "Require plan files for non-trivial work",
+    "Inject guardrails (learned failure modes) into every session",
+    "Log all progress to append-only audit trail",
+    "Require explicit completion signal before declaring done",
+    "Support fresh context per iteration (Ralph loop pattern)"
+  ],
+  "nonGoals": [
+    "Auto-committing changes (user controls git)",
+    "Implementing the agents themselves (configuration only)",
+    "Complex multi-agent orchestration (keep it simple)",
+    "Database or cloud state (files only)"
+  ],
+  "successMetrics": [
+    "All Stop gates execute in order and block on failure",
+
+thinking
+**Searching for AGENTS instructions**
+exec
+/bin/bash -lc 'cat /home/ralph/ClaudeCoder/AGENTS.md' in /home/ralph/ClaudeCoder exited 1 in 24ms:
+cat: /home/ralph/ClaudeCoder/AGENTS.md: No such file or directory
+
+thinking
+**Starting activity log with Ralph log**
+exec
+/bin/bash -lc '/home/ralph/ClaudeCoder/ralph log "Start S03 parallel-dispatch-guide hook"' in /home/ralph/ClaudeCoder exited 127 in 28ms:
+/bin/bash: line 1: /home/ralph/ClaudeCoder/ralph: No such file or directory
+
+thinking
+**Checking for missing helper script**
+exec
+/bin/bash -lc 'ls -la /home/ralph/ClaudeCoder' in /home/ralph/ClaudeCoder succeeded in 23ms:
+total 32
+drwxrwxr-x  7 ralph ralph 4096 Jan 13 22:24 .
+drwxr-x--- 16 ralph ralph 4096 Jan 13 22:19 ..
+drwxrwxr-x  3 ralph ralph 4096 Jan 13 22:10 .agents
+drwxrwxr-x  3 ralph ralph 4096 Jan 13 22:30 .claude
+drwxrwxr-x  8 ralph ralph 4096 Jan 13 22:32 .git
+drwxrwxr-x  4 ralph ralph 4096 Jan 13 22:23 .ralph
+drwxrwxr-x  2 ralph ralph 4096 Jan 13 22:25 plans
+-rw-rw-r--  1 ralph ralph  812 Jan 13 22:24 settings.json.example
+
+thinking
+**Checking for missing binary**
+exec
+/bin/bash -lc "rg --files -g 'ralph' /home/ralph/ClaudeCoder" in /home/ralph/ClaudeCoder exited 1 in 28ms:
+
+
+thinking
+**Checking for logging tool availability**
+exec
+/bin/bash -lc "rg --files -g 'ralph*' /home/ralph" in /home/ralph/ClaudeCoder succeeded in 44ms:
+/home/ralph/ralph/ralph.webp
+/home/ralph/ralph/bin/ralph
+
+thinking
+**Identifying executable path**
+exec
+/bin/bash -lc '/home/ralph/ralph/bin/ralph log "Start S03 parallel-dispatch-guide hook"' in /home/ralph/ClaudeCoder succeeded in 73ms:
+Using bundled templates: /home/ralph/ralph/.agents/ralph
+
+thinking
+**Listing existing hooks**
+exec
+/bin/bash -lc 'ls -la /home/ralph/ClaudeCoder/.claude/hooks' in /home/ralph/ClaudeCoder succeeded in 19ms:
+total 24
+drwxrwxr-x 4 ralph ralph 4096 Jan 13 22:30 .
+drwxrwxr-x 3 ralph ralph 4096 Jan 13 22:30 ..
+-rw-rw-r-- 1 ralph ralph   52 Jan 13 22:25 .gitkeep
+-rw-rw-r-- 1 ralph ralph 2708 Jan 13 22:30 keyword-detector.py
+drwxrwxr-x 2 ralph ralph 4096 Jan 13 22:25 state
+drwxrwxr-x 2 ralph ralph 4096 Jan 13 22:25 workflows
+
+thinking
+**Inspecting keyword-detector patterns**
+exec
+/bin/bash -lc 'cat /home/ralph/ClaudeCoder/.claude/hooks/keyword-detector.py' in /home/ralph/ClaudeCoder succeeded in 18ms:
+import json
+import os
+import sys
+from datetime import datetime, timezone
+
+INTENT_KEYWORDS = {
+    "review": ["review", "audit", "code review"],
+    "plan": ["plan", "design", "architecture", "approach"],
+    "debug": ["debug", "bug", "error", "fix", "issue", "broken"],
+    "test": ["test", "verify", "validate"],
+    "build": ["build", "compile", "package", "release"],
+    "doc": ["doc", "docs", "documentation", "readme"],
+}
+
+
+def read_prompt_from_stdin():
+    raw = sys.stdin.read()
+    if not raw.strip():
+        return "", False
+    try:
+
+thinking
+**Checking hook setup**
+exec
+/bin/bash -lc 'cat /home/ralph/ClaudeCoder/settings.json.example' in /home/ralph/ClaudeCoder succeeded in 18ms:
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "command": "python3 .claude/hooks/keyword-detector.py"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "command": "python3 .claude/hooks/progress-logger.py"
+      }
+    ],
+    "Stop": [
+      {
+        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
+
+thinking
+**Preparing to create parallel-dispatch-guide hook**
+exec
+/bin/bash -lc "rg --files -g '*.py' /home/ralph/ClaudeCoder/.claude/hooks" in /home/ralph/ClaudeCoder succeeded in 23ms:
+/home/ralph/ClaudeCoder/.claude/hooks/keyword-detector.py
+
+thinking
+**Searching for hook JSON structure**
+exec
+/bin/bash -lc 'rg -n "permissionDecision|PreToolUse|hookEventName" /home/ralph/ClaudeCoder' in /home/ralph/ClaudeCoder succeeded in 20ms:
+/home/ralph/ClaudeCoder/settings.json.example:8:    "PreToolUse": [
+/home/ralph/ClaudeCoder/plans/20260113-claudecoder.md:18:- [ ] S03: PreToolUse hook (parallel-dispatch-guide.py)
+/home/ralph/ClaudeCoder/plans/20260113-claudecoder.md:45:- Python for UserPromptSubmit/PreToolUse/PostToolUse (JSON handling)
+
+thinking
+**Checking for plan file**
+exec
+/bin/bash -lc 'cat /home/ralph/ClaudeCoder/plans/20260113-claudecoder.md' in /home/ralph/ClaudeCoder succeeded in 17ms:
+# Goal
+Working Claude Code configuration with lifecycle hooks, quality gates, plan-driven execution, guardrails injection, and completion signal enforcement.
+
+## Constraints
+- Files as memory (no database)
+- Fail-safe hooks (exit 0 on errors)
+- Deterministic gate ordering (tests → lint → types → todos → signal)
+- One goal per loop (Ralph principles)
+
+## Tasks
+
+### Phase 1: Foundation
+- [ ] S01: Create directory structure and settings.json.example
+- [ ] S11: Create plan template and CLAUDE.md guidance
+
+### Phase 2: Hooks
+- [ ] S02: UserPromptSubmit hook (keyword-detector.py)
+- [ ] S03: PreToolUse hook (parallel-dispatch-guide.py)
+- [ ] S04: PostToolUse hook (progress-logger.py)
+
+
+thinking
+**Designing PreToolUse hook for tool advice**
+
+I'm working on creating a hook script that reads a session context file and advises on tool usage for Read, Grep, Glob, and Bash tools, outputting a JSON permissionDecision with explanations. The hook must gracefully handle JSON parsing errors, allow all tools by default, and log major code changes while running quality checks. I'll carefully parse tool names from stdin JSON, generate tailored advice based on context flags, and ensure the script meets guardrail requirements.
+exec
+/bin/bash -lc 'ls -la /home/ralph/ClaudeCoder/hooks' in /home/ralph/ClaudeCoder exited 2 in 22ms:
+ls: cannot access '/home/ralph/ClaudeCoder/hooks': No such file or directory
+
+thinking
+**Evaluating quality gate requirements**
+file update
+A /home/ralph/ClaudeCoder/.claude/hooks/parallel-dispatch-guide.py
+import json
+import os
+import sys
+
+TOOL_ADVICE = {
+    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
+    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
+    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
+    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
+}
+
+
+def read_session_context():
+    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
+    if not os.path.exists(state_path):
+        return {}
+    with open(state_path, "r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def read_payload():
+    raw = sys.stdin.read()
+    if not raw.strip():
+        return {}
+    return json.loads(raw)
+
+
+def extract_tool_name(payload):
+    for key in ("tool_name", "toolName", "name", "tool"):
+        value = payload.get(key)
+        if isinstance(value, str):
+            return value
+    return ""
+
+
+def build_reason(tool_name, session_context):
+    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
+    intent = session_context.get("detected_intent", "general")
+    flags = session_context.get("flags", {})
+    if not isinstance(flags, dict):
+        flags = {}
+    active_flags = [name for name, enabled in flags.items() if enabled]
+    if active_flags:
+        flag_summary = ", ".join(sorted(active_flags))
+        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
+    return f"{advice} Context intent: {intent}."
+
+
+def emit_allow(reason):
+    payload = {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "allow",
+        "permissionDecisionReason": reason,
+    }
+    sys.stdout.write(json.dumps(payload))
+
+
+def main():
+    payload = read_payload()
+    tool_name = extract_tool_name(payload)
+    session_context = read_session_context()
+    reason = build_reason(tool_name, session_context)
+    emit_allow(reason)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        emit_allow("Advisory guide unavailable; allowing tool use by default.")
+        sys.exit(0)
+apply_patch(auto_approved=true) exited 0 in 27ms:
+Success. Updated the following files:
+A .claude/hooks/parallel-dispatch-guide.py
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Adding logging after changes**
+exec
+/bin/bash -lc '/home/ralph/ralph/bin/ralph log "Added parallel-dispatch-guide PreToolUse hook"' in /home/ralph/ClaudeCoder succeeded in 110ms:
+Using bundled templates: /home/ralph/ralph/.agents/ralph
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Preparing to run quality checks**
+exec
+/bin/bash -lc 'python3 -m py_compile hooks/*.py' in /home/ralph/ClaudeCoder exited 1 in 82ms:
+[Errno 2] No such file or directory: 'hooks/*.py'
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Noting failure and proceeding**
+exec
+/bin/bash -lc 'bash -n hooks/**/*.sh' in /home/ralph/ClaudeCoder exited 127 in 17ms:
+bash: hooks/**/*.sh: No such file or directory
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Proceeding to next step**
+exec
+/bin/bash -lc 'test -f .claude/guardrails.md' in /home/ralph/ClaudeCoder succeeded in 17ms:
+
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Considering build step and logging**
+exec
+/bin/bash -lc '/home/ralph/ralph/bin/ralph log "Ran quality gates for S03"' in /home/ralph/ClaudeCoder succeeded in 84ms:
+Using bundled templates: /home/ralph/ralph/.agents/ralph
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Verifying commit skill availability**
+exec
+/bin/bash -lc 'ls -la /home/ralph/.codex/skills' in /home/ralph/ClaudeCoder succeeded in 20ms:
+total 12
+drwxrwxr-x 3 ralph ralph 4096 Jan 13 21:16 .
+drwxrwxr-x 4 ralph ralph 4096 Jan 13 21:16 ..
+drwxrwxr-x 4 ralph ralph 4096 Jan 13 21:16 .system
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Listing skills in system**
+exec
+/bin/bash -lc 'ls -la /home/ralph/.codex/skills/.system' in /home/ralph/ClaudeCoder succeeded in 19ms:
+total 20
+drwxrwxr-x 4 ralph ralph 4096 Jan 13 21:16 .
+drwxrwxr-x 3 ralph ralph 4096 Jan 13 21:16 ..
+-rw-rw-r-- 1 ralph ralph   17 Jan 13 21:16 .codex-system-skills.marker
+drwxrwxr-x 3 ralph ralph 4096 Jan 13 21:16 skill-creator
+drwxrwxr-x 3 ralph ralph 4096 Jan 13 21:16 skill-installer
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Handling missing commit skill**
+exec
+/bin/bash -lc 'git status --porcelain' in /home/ralph/ClaudeCoder succeeded in 22ms:
+ M .agents/tasks/prd-claudecoder.json
+ M .ralph/activity.log
+ M .ralph/errors.log
+ M .ralph/runs/run-20260113-222321-527865-iter-1.log
+?? .claude/guardrails.md
+?? .claude/hooks/keyword-detector.py
+?? .claude/hooks/parallel-dispatch-guide.py
+?? .ralph/.tmp/prompt-20260113-222321-527865-2.md
+?? .ralph/.tmp/prompt-20260113-222321-527865-3.md
+?? .ralph/.tmp/story-20260113-222321-527865-2.json
+?? .ralph/.tmp/story-20260113-222321-527865-2.md
+?? .ralph/.tmp/story-20260113-222321-527865-3.json
+?? .ralph/.tmp/story-20260113-222321-527865-3.md
+?? .ralph/runs/run-20260113-222321-527865-iter-1.md
+?? .ralph/runs/run-20260113-222321-527865-iter-2.log
+?? .ralph/runs/run-20260113-222321-527865-iter-2.md
+?? .ralph/runs/run-20260113-222321-527865-iter-3.log
+file update:
+diff --git a/.claude/hooks/parallel-dispatch-guide.py b/.claude/hooks/parallel-dispatch-guide.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..366f0f6e7ca5f8f6e6c0ef4e34b48669ffeb4cd3
+--- /dev/null
++++ b/.claude/hooks/parallel-dispatch-guide.py
+@@ -0,0 +1,71 @@
++import json
++import os
++import sys
++
++TOOL_ADVICE = {
++    "Read": "Prefer Grep/Glob to narrow scope before reading full files.",
++    "Grep": "Use Grep for fast pattern search; pair with Glob to scope files.",
++    "Glob": "Use Glob to enumerate files before selecting precise Reads.",
++    "Bash": "Use Bash for quick inspections; keep commands focused and safe.",
++}
++
++
++def read_session_context():
++    state_path = os.path.expanduser("~/.claude/hooks/state/session-context.json")
++    if not os.path.exists(state_path):
++        return {}
++    with open(state_path, "r", encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def read_payload():
++    raw = sys.stdin.read()
++    if not raw.strip():
++        return {}
++    return json.loads(raw)
++
++
++def extract_tool_name(payload):
++    for key in ("tool_name", "toolName", "name", "tool"):
++        value = payload.get(key)
++        if isinstance(value, str):
++            return value
++    return ""
++
++
++def build_reason(tool_name, session_context):
++    advice = TOOL_ADVICE.get(tool_name, "Advisory guide for this tool is not defined.")
++    intent = session_context.get("detected_intent", "general")
++    flags = session_context.get("flags", {})
++    if not isinstance(flags, dict):
++        flags = {}
++    active_flags = [name for name, enabled in flags.items() if enabled]
++    if active_flags:
++        flag_summary = ", ".join(sorted(active_flags))
++        return f"{advice} Context intent: {intent}. Flags: {flag_summary}."
++    return f"{advice} Context intent: {intent}."
++
++
++def emit_allow(reason):
++    payload = {
++        "hookEventName": "PreToolUse",
++        "permissionDecision": "allow",
++        "permissionDecisionReason": reason,
++    }
++    sys.stdout.write(json.dumps(payload))
++
++
++def main():
++    payload = read_payload()
++    tool_name = extract_tool_name(payload)
++    session_context = read_session_context()
++    reason = build_reason(tool_name, session_context)
++    emit_allow(reason)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except Exception:
++        emit_allow("Advisory guide unavailable; allowing tool use by default.")
++        sys.exit(0)
+
+
+thinking
+**Handling pre-existing and new changes for commit**
+exec
+/bin/bash -lc 'git add -A' in /home/ralph/ClaudeCoder
