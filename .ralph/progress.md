@@ -201,3 +201,38 @@ Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter
   - Gotchas encountered
   - Useful context
 ---
+## [2026-01-13 23:12:12 CET] - S11: Plan file template and CLAUDE.md guidance
+Thread: 
+Run: 20260113-222321-527865 (iteration 11)
+Run log: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-11.log
+Run summary: /home/ralph/ClaudeCoder/.ralph/runs/run-20260113-222321-527865-iter-11.md
+- Guardrails reviewed: yes
+- No-commit run: false
+- Commit: 0cb4311 Add plan template and CLAUDE guidance
+- Post-commit status: clean
+- Verification:
+  - Command: python3 -m py_compile hooks/*.py -> FAIL
+  - Command: bash -n hooks/**/*.sh -> FAIL
+  - Command: test -f .claude/guardrails.md -> PASS
+- Files changed:
+  - CLAUDE.md
+  - plans/PLAN_TEMPLATE.md
+  - .ralph/activity.log
+  - .ralph/progress.md
+  - .ralph/runs/run-20260113-222321-527865-iter-9.md
+  - .ralph/runs/run-20260113-222321-527865-iter-10.log
+  - .ralph/runs/run-20260113-222321-527865-iter-10.md
+  - .ralph/runs/run-20260113-222321-527865-iter-11.log
+  - .ralph/.tmp/prompt-20260113-222321-527865-10.md
+  - .ralph/.tmp/prompt-20260113-222321-527865-11.md
+  - .ralph/.tmp/story-20260113-222321-527865-10.json
+  - .ralph/.tmp/story-20260113-222321-527865-10.md
+  - .ralph/.tmp/story-20260113-222321-527865-11.json
+  - .ralph/.tmp/story-20260113-222321-527865-11.md
+- What was implemented
+  - Added a plan template with Goal/Tasks/Notes guidance and documented plan-driven execution rules in CLAUDE.md.
+- **Learnings for future iterations:**
+  - Patterns discovered: Keep plan notes explicit about intent and verification.
+  - Gotchas encountered: Global quality gate paths still point at hooks/ instead of .claude/hooks/.
+  - Useful context: CLAUDE.md now defines trivial vs open-ended classification.
+---
