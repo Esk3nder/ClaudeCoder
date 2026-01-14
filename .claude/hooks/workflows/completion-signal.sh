@@ -15,6 +15,9 @@ try:
 except json.JSONDecodeError:
     sys.exit(0)
 
+if not isinstance(data, dict):
+    sys.exit(0)
+
 path = data.get("transcript_path") or data.get("transcriptPath") or ""
 if isinstance(path, str):
     sys.stdout.write(path)

@@ -21,6 +21,8 @@ def read_prompt_from_stdin():
         data = json.loads(raw)
     except json.JSONDecodeError:
         return "", True
+    if not isinstance(data, dict):
+        return "", True
     prompt = data.get("prompt", "")
     if not isinstance(prompt, str):
         prompt = ""
