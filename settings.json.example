@@ -2,34 +2,34 @@
   "hooks": {
     "UserPromptSubmit": [
       {
-        "command": "python3 .claude/hooks/keyword-detector.py"
+        "command": "python3 \"$HOME/.claude/hooks/keyword-detector.py\""
       }
     ],
     "PreToolUse": [
       {
-        "command": "python3 .claude/hooks/parallel-dispatch-guide.py"
+        "command": "python3 \"$HOME/.claude/hooks/parallel-dispatch-guide.py\""
       }
     ],
     "PostToolUse": [
       {
-        "command": "python3 .claude/hooks/progress-logger.py"
+        "command": "python3 \"$HOME/.claude/hooks/progress-logger.py\""
       }
     ],
     "Stop": [
       {
-        "command": "bash .claude/hooks/workflows/require-green-tests.sh"
+        "command": "bash \"$HOME/.claude/hooks/workflows/require-green-tests.sh\""
       },
       {
-        "command": "bash .claude/hooks/workflows/require-clean-lint.sh"
+        "command": "bash \"$HOME/.claude/hooks/workflows/require-clean-lint.sh\""
       },
       {
-        "command": "bash .claude/hooks/workflows/require-clean-types.sh"
+        "command": "bash \"$HOME/.claude/hooks/workflows/require-clean-types.sh\""
       },
       {
-        "command": "bash .claude/hooks/workflows/todo-enforcer.sh"
+        "command": "bash \"$HOME/.claude/hooks/workflows/todo-enforcer.sh\""
       },
       {
-        "command": "bash .claude/hooks/workflows/completion-signal.sh"
+        "command": "bash \"$HOME/.claude/hooks/workflows/completion-signal.sh\""
       }
     ]
   }
