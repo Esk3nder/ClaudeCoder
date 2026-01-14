@@ -14,9 +14,12 @@ def read_payload():
     if not raw.strip():
         return {}
     try:
-        return json.loads(raw)
+        payload = json.loads(raw)
     except json.JSONDecodeError:
         return {}
+    if not isinstance(payload, dict):
+        return {}
+    return payload
 
 
 def extract_tool_name(payload):
